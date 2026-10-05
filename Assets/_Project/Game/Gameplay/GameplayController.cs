@@ -24,6 +24,7 @@ namespace PuzzleStudio.Game.Gameplay
         GameViewport _viewport = new GameViewport();
 
         IPuzzleMode _mode;
+        ICardMode _cards;   // Memory mode, else null
         GameSession _session;
         Texture2D _texture;
         int _levelIndex = -1;
@@ -34,6 +35,7 @@ namespace PuzzleStudio.Game.Gameplay
         int _lastSnapFrame = -1;
 
         public IPuzzleMode Mode => _mode;
+        public BoardView Board => _board;
         public GameSession Session => _session;
         public int LevelIndex => _levelIndex;
         public bool IsPlaying => _session != null;
@@ -141,6 +143,7 @@ namespace PuzzleStudio.Game.Gameplay
             _mode = PuzzleModeRegistry.Create(setup.ModeId);
             _mode.Setup(setup.Layout, setup.Settings);
             _mode.Shuffle(setup.Seed + attempt * 7919);
+            _cards = _mode as ICardMode;
             _mode.OnMove += HandleMove;
             _mode.OnPieceCorrect += HandlePieceCorrect;
             _mode.OnSolved += HandleSolved;
@@ -173,6 +176,7 @@ namespace PuzzleStudio.Game.Gameplay
             StopAllCoroutines();
             _session = null;
             _mode = null;
+            _cards = null;
             _input.InputEnabled = false;
             _flow.Particles.Clear();
             _board.Clear();
@@ -317,8 +321,9 @@ namespace PuzzleStudio.Game.Gameplay
             if (!hint.IsValid) return;
             _session.CountHint();
             _board.ShowHint(hint);
-            // With a gamepad the cursor jumps to the piece to move.
-            if (_board.CursorVisible && hint.FromCell >= 0 && !Slides) _board.ShowCursor(hint.FromCell);
+            // With a gamepad the cursor jumps to the piece to move (Memory: to the card to turn over).
+            int hintCell = _cards != null && _cards.IsFaceUp(hint.FromCell) ? hint.ToCell : hint.FromCell;
+            if (_board.CursorVisible && hintCell >= 0 && !Slides) _board.ShowCursor(hintCell);
             _flow.Audio.PlaySfx("hint");
             _screen.SetHintsLeft(_pack.gameplay.maxHintsPerLevel - _session.HintsUsed);
         }
@@ -339,17 +344,65 @@ namespace PuzzleStudio.Game.Gameplay
             if (!move.IsUndo)
             {
                 _session.CountMove(move.Count);
-                _flow.Audio.PlaySfx(_mode.DragStyle == DragStyle.None ? "pick" : "drop");
+                if (_cards != null) CardMoved(move);
+                else _flow.Audio.PlaySfx(_mode.DragStyle == DragStyle.None ? "pick" : "drop");
             }
             _board.Sync(animate: true);
             _screen.SetMoves(_session.Moves);
             _screen.SetUndoAvailable(_mode.CanUndo);
         }
 
+        // ------------------------------------------------------------------ Memory
+
+        /// <summary>Time two different cards stay visible before they are turned back.</summary>
+        public const float MismatchDelay = 1.05f;
+
+        void CardMoved(PuzzleMove move)
+        {
+            if (!_cards.IsFaceUp(move.PrimaryPiece))
+            {
+                _flow.Audio.PlaySfx("drop", 0.85f, 0.7f);     // two different cards turned back
+                return;
+            }
+            _flow.Audio.PlaySfx("pick");
+            if (_cards.HasMismatch)
+            {
+                Rumble.Play(0.15f, 0f, 0.05f);
+                StartCoroutine(TurnBackLater(_cards, _cards.Attempts));
+            }
+        }
+
+        IEnumerator TurnBackLater(ICardMode cards, int attempt)
+        {
+            yield return new WaitForSecondsRealtime(MismatchDelay);
+            while (_paused) yield return null;
+            // Not if the player already went on (a third tap turns them back at once).
+            if (_cards == cards && cards.HasMismatch && cards.Attempts == attempt) cards.ResolveMismatch();
+        }
+
+        /// <summary>Pair found: the sound when the second symbol shows, sparkles when the symbols make way for the picture.</summary>
+        IEnumerator CardMatched(int pieceId)
+        {
+            yield return new WaitForSecondsRealtime(0.2f);
+            PlaySnapFeedback();
+            yield return new WaitForSecondsRealtime(BoardView.CardHold - 0.2f);
+            if (_mode != null && !_mode.IsSolved()) _flow.Particles.PlaySnap(_board.PieceWorldPosition(pieceId), _board.CellSize);
+        }
+
         void HandlePieceCorrect(int pieceId)
         {
+            if (_cards != null)
+            {
+                StartCoroutine(CardMatched(pieceId));
+                return;
+            }
             _board.PlayCorrect(pieceId);
             if (!_mode.IsSolved()) _flow.Particles.PlaySnap(_board.PieceWorldPosition(pieceId), _board.CellSize);
+            PlaySnapFeedback();
+        }
+
+        void PlaySnapFeedback()
+        {
             // Rising pitch while the player chains correct placements (one sound per frame: strips can fix several at once).
             if (_lastSnapFrame == Time.frameCount) return;
             _lastSnapFrame = Time.frameCount;
@@ -390,7 +443,7 @@ namespace PuzzleStudio.Game.Gameplay
 
         IEnumerator VictorySequence(int stars, RecordResult record, int nextKind)
         {
-            yield return new WaitForSecondsRealtime(BoardView.MoveDuration + 0.1f);
+            yield return new WaitForSecondsRealtime(_board.SettleTime);
             _board.PlayVictory();
             _flow.Audio.PlaySfx("victory");
             Rumble.Play(0.35f, 0.6f, 0.35f);

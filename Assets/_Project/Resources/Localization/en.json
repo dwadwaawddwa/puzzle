@@ -74,6 +74,7 @@
   "mode.Strips.help": "Drag a strip to its place: the others make room.",
   "mode.Sliding.help": "Click a tile in line with the gap to slide it (arrow keys work too).",
   "mode.Rotate.help": "Click a tile to turn it — right click turns it the other way.",
+  "mode.Memory.help": "Turn over two cards: the same symbol and they stay. Find every pair to uncover the picture.",
   "victory.move": "{0} move",
   "menu.achievements": "Achievements",
   "achievements.title": "Achievements",
@@ -145,7 +146,9 @@
   "mode.Sliding.help.pad": "Push the tiles into the gap with the D-pad.",
   "mode.Sliding.help.keys": "Push the tiles into the gap with the arrow keys.",
   "mode.Rotate.help.pad": "Move with the D-pad: A turns a tile, RB turns it the other way.",
+  "mode.Memory.help.pad": "Move with the D-pad: A turns a card over. Find every pair to uncover the picture.",
   "mode.Rotate.help.keys": "Move with the arrow keys: Enter turns a tile, Q turns it the other way.",
+  "mode.Memory.help.keys": "Move with the arrow keys: Enter turns a card over. Find every pair to uncover the picture.",
   "menu.quitConfirm": "Quit the game?",
   "menu.quitYes": "Quit",
   "achievements.toastMany": "{0} ACHIEVEMENTS UNLOCKED"

@@ -7,7 +7,11 @@ namespace PuzzleStudio.Core.Data
         public const string Strips = "Strips";
         public const string Sliding = "Sliding";
         public const string Rotate = "Rotate";
+        public const string Memory = "Memory";
     }
+
+    /// <summary>What Memory cards show when turned over (with their piece of the picture).</summary>
+    public enum MemorySymbols { Numbers, Letters, Colors }
 
     public enum DifficultyCurve { Fixed, Progressive, Custom }
     public enum UnlockRule { Sequential, AllUnlocked, ByStars }

@@ -1,4 +1,5 @@
 using PuzzleStudio.Core.Util;
+using PuzzleStudio.Game.UI;
 using UnityEngine;
 
 namespace PuzzleStudio.Game.Gameplay
@@ -20,6 +21,13 @@ namespace PuzzleStudio.Game.Gameplay
         static readonly int HighlightWidthId = Shader.PropertyToID("_HighlightWidth");
         static readonly int TintId = Shader.PropertyToID("_Tint");
         static readonly int SoftnessId = Shader.PropertyToID("_Softness");
+        static readonly int BackId = Shader.PropertyToID("_Back");
+        static readonly int BackColorId = Shader.PropertyToID("_BackColor");
+        static readonly int BackColor2Id = Shader.PropertyToID("_BackColor2");
+        static readonly int OutlineId = Shader.PropertyToID("_Outline");
+        static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
+        static readonly int BadgeId = Shader.PropertyToID("_Badge");
+        static readonly int BadgeRadiusId = Shader.PropertyToID("_BadgeRadius");
 
         public int PieceId { get; private set; }
 
@@ -60,7 +68,24 @@ namespace PuzzleStudio.Game.Gameplay
         MaterialPropertyBlock _shadowMpb;
         float _shadowStrength, _shadowOffset, _shadowSoftness, _liftScale = 1.08f, _lastScale = 1f;
 
+        // Memory card: face down (patterned back) or face up (picture + symbol), flipped around its vertical axis.
+        bool _faceUp = true, _shownFaceUp = true;
+        float _flipT = 1f;
+        const float FlipDuration = 0.34f;
+        string _label = "", _pendingLabel = "";
+        Color _outline, _pendingOutline;
+        Color _backColor, _backColor2;
+        float _completeDelay = -1f;
+        Color _completeFlash;
+        TextMesh _text;
+        MeshRenderer _textRenderer;
+        static Font _labelFont;
+        static float _glyphHeight;   // height of a digit at the label font size, in font pixels
+
         public bool IsMoving => _moveT < 1f;
+        public bool IsCard { get; private set; }
+        public bool ShowsFace => _shownFaceUp;
+        public string Label => _shownFaceUp ? _label : "";
         public Vector3 TargetPosition => _to;
 
         public void Init(int pieceId, Mesh quad, Material material, Texture texture, Rect uv)
@@ -84,8 +109,121 @@ namespace PuzzleStudio.Game.Gameplay
             _quarter = 0;
             _angle = _angleFrom = _angleTo = 0f;
             _scale = _scaleTarget = 1f;
+            IsCard = false;
+            _faceUp = _shownFaceUp = true;
+            _flipT = 1f;
+            _label = _pendingLabel = "";
+            _outline = _pendingOutline = Color.clear;
+            _completeDelay = -1f;
             _dirty = true;
             enabled = true;
+        }
+
+        // ------------------------------------------------------------------ Memory cards
+
+        /// <summary>Turns this piece into a card (Memory mode) with the given back colors.</summary>
+        public void SetCard(Color back, Color back2)
+        {
+            IsCard = true;
+            _backColor = back;
+            _backColor2 = back2;
+            _dirty = true;
+            enabled = true;
+        }
+
+        /// <summary>
+        /// Face up shows the picture plus a symbol: <paramref name="label"/> (number / letter, "" = none) and/or a
+        /// colored <paramref name="outline"/> (alpha 0 = none). Changing side plays a flip; the new face appears half-way.
+        /// </summary>
+        public void SetCardFace(bool faceUp, string label, Color outline, bool animate)
+        {
+            label ??= "";
+            bool flip = faceUp != _faceUp;
+            _faceUp = faceUp;
+            _pendingLabel = label;
+            _pendingOutline = outline;
+            _completeDelay = -1f;
+            if (flip && animate && !UiAnim.ReduceMotion)
+            {
+                // A flip started during another one continues from the same edge-on point.
+                _flipT = _flipT < 1f ? 1f - _flipT : 0f;
+            }
+            else if (!flip && animate && _flipT < 1f)
+            {
+                // Same side while a flip runs: the new face is applied half-way (or now, if already shown).
+                if (_shownFaceUp == faceUp) { _label = label; _outline = outline; }
+            }
+            else
+            {
+                _flipT = 1f;
+                _shownFaceUp = faceUp;
+                _label = label;
+                _outline = outline;
+            }
+            _dirty = true;
+            enabled = true;
+        }
+
+        /// <summary>Pair found: after <paramref name="delay"/> the symbol disappears and the piece of the picture flashes.</summary>
+        public void CompleteCard(float delay, Color flash)
+        {
+            _completeFlash = flash;
+            _completeDelay = Mathf.Max(0f, delay);
+            enabled = true;
+        }
+
+        void FinishCard()
+        {
+            _completeDelay = -1f;
+            _label = _pendingLabel = "";
+            _outline = _pendingOutline = Color.clear;
+            Pop(_completeFlash);
+        }
+
+        void EnsureText()
+        {
+            if (_text != null) return;
+            if (_labelFont == null)
+            {
+                _labelFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                _labelFont.RequestCharactersInTexture("8", 96, FontStyle.Bold);
+                _glyphHeight = _labelFont.GetCharacterInfo('8', out var info, 96, FontStyle.Bold) ? Mathf.Max(1, info.glyphHeight) : 70f;
+            }
+            var go = new GameObject(name + " Label", typeof(MeshRenderer), typeof(TextMesh));
+            go.transform.SetParent(transform.parent, false);
+            _text = go.GetComponent<TextMesh>();
+            _text.font = _labelFont;
+            _text.fontSize = 96;
+            _text.fontStyle = FontStyle.Bold;
+            _text.characterSize = 1f;
+            _text.anchor = TextAnchor.MiddleCenter;
+            _text.alignment = TextAlignment.Center;
+            _text.color = Color.white;
+            _textRenderer = go.GetComponent<MeshRenderer>();
+            _textRenderer.sharedMaterial = _labelFont.material;
+            _textRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _textRenderer.receiveShadows = false;
+        }
+
+        void UpdateLabel(float scale, float flipX)
+        {
+            bool show = IsCard && _shownFaceUp && _label.Length > 0 && gameObject.activeSelf;
+            if (!show)
+            {
+                if (_text != null) _text.gameObject.SetActive(false);
+                return;
+            }
+            EnsureText();
+            _text.gameObject.SetActive(true);
+            if (_text.text != _label) _text.text = _label;
+            float m = Mathf.Min(_size.x, _size.y) * scale;
+            // TextMesh: 1 font pixel = 0.1 world unit at character size 1.
+            float h = m * (_label.Length > 1 ? 0.27f : 0.32f);
+            float s = h / (_glyphHeight * 0.1f);
+            var t = _text.transform;
+            t.localPosition = transform.localPosition + new Vector3(0f, -h * 0.04f, -0.02f);
+            t.localScale = new Vector3(s * flipX, s, 1f);
+            _textRenderer.sortingOrder = _renderer.sortingOrder + 1;
         }
 
         public void SetStyle(Vector2 size, float radius, float border, Color borderColor, float highlightWidth = 0.05f)
@@ -124,8 +262,16 @@ namespace PuzzleStudio.Game.Gameplay
         }
 
         void OnEnable() { if (_shadow != null) _shadow.gameObject.SetActive(_shadowStrength > 0f); }
-        void OnDisable() { if (_shadow != null) _shadow.gameObject.SetActive(false); }
-        void OnDestroy() { if (_shadow != null) Destroy(_shadow.gameObject); }
+        void OnDisable()
+        {
+            if (_shadow != null) _shadow.gameObject.SetActive(false);
+            if (_text != null && !gameObject.activeSelf) _text.gameObject.SetActive(false);
+        }
+        void OnDestroy()
+        {
+            if (_shadow != null) Destroy(_shadow.gameObject);
+            if (_text != null) Destroy(_text.gameObject);
+        }
 
         void UpdateShadow()
         {
@@ -138,7 +284,7 @@ namespace PuzzleStudio.Game.Gameplay
             _shadow.localPosition = new Vector3(pos.x + offset * 0.35f, pos.y - offset, pos.z + 0.01f);
             _shadow.localRotation = transform.localRotation;
             var size = new Vector2(_size.x * s + soft * 2f, _size.y * s + soft * 2f);
-            _shadow.localScale = new Vector3(size.x, size.y, 1f);
+            _shadow.localScale = new Vector3(size.x * FlipScale, size.y, 1f);
             _shadowMpb.SetTexture(MainTexId, Texture2D.whiteTexture);
             _shadowMpb.SetVector(UVRectId, new Vector4(0, 0, 1, 1));
             _shadowMpb.SetVector(SizeId, new Vector4(size.x, size.y, 0, 0));
@@ -282,6 +428,28 @@ namespace PuzzleStudio.Game.Gameplay
                 busy = true;
             }
 
+            if (_flipT < 1f)
+            {
+                float before = _flipT;
+                _flipT = Mathf.Min(1f, _flipT + dt / FlipDuration);
+                if (before < 0.5f && _flipT >= 0.5f)
+                {
+                    // Edge-on: swap to the other side.
+                    _shownFaceUp = _faceUp;
+                    _label = _pendingLabel;
+                    _outline = _pendingOutline;
+                }
+                busy = true;
+            }
+
+            if (_completeDelay >= 0f)
+            {
+                _completeDelay -= dt;
+                if (_completeDelay < 0f && _flipT >= 1f) FinishCard();
+                else if (_completeDelay < 0f) _completeDelay = 0f;
+                busy = true;
+            }
+
             float flash = 0f;
             if (_flashT < 1f)
             {
@@ -294,11 +462,16 @@ namespace PuzzleStudio.Game.Gameplay
             else enabled = false;
         }
 
+        /// <summary>Horizontal squash of a card being flipped (1 = flat on the board, 0 = edge-on).</summary>
+        float FlipScale => _flipT >= 1f ? 1f : Mathf.Max(0.02f, Mathf.Abs(Mathf.Cos(_flipT * Mathf.PI)));
+
         void Apply(float pop, float flash)
         {
-            float s = _scale + pop;
+            float flipLift = _flipT < 1f ? Mathf.Sin(_flipT * Mathf.PI) * 0.06f : 0f;
+            float s = _scale + pop + flipLift;
             _lastScale = s;
-            transform.localScale = new Vector3(_size.x * s, _size.y * s, 1f);
+            float flipX = FlipScale;
+            transform.localScale = new Vector3(_size.x * s * flipX, _size.y * s, 1f);
             transform.localRotation = Quaternion.Euler(0f, 0f, _angle);
 
             _mpb.SetVector(SizeId, new Vector4(_size.x * s, _size.y * s, 0f, 0f));
@@ -313,8 +486,21 @@ namespace PuzzleStudio.Game.Gameplay
             h.a = amount;
             _mpb.SetColor(HighlightId, h);
             _mpb.SetFloat(SoftnessId, 0f);
+
+            bool back = IsCard && !_shownFaceUp;
+            float m = Mathf.Min(_size.x, _size.y) * s;
+            _mpb.SetFloat(BackId, back ? 1f : 0f);
+            _mpb.SetColor(BackColorId, _backColor);
+            _mpb.SetColor(BackColor2Id, _backColor2);
+            bool outline = IsCard && !back && _outline.a > 0f;
+            _mpb.SetColor(OutlineId, outline ? _outline : Color.clear);
+            _mpb.SetFloat(OutlineWidthId, outline ? Mathf.Max(m * 0.085f, 0.004f) : 0f);
+            bool badge = IsCard && !back && _label.Length > 0;
+            _mpb.SetColor(BadgeId, badge ? new Color(0.06f, 0.06f, 0.09f, 0.62f) : Color.clear);
+            _mpb.SetFloat(BadgeRadiusId, badge ? m * (_label.Length > 1 ? 0.27f : 0.25f) : 0f);
             _renderer.SetPropertyBlock(_mpb);
             UpdateShadow();
+            UpdateLabel(s, flipX);
         }
     }
 }

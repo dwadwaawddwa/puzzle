@@ -37,7 +37,10 @@ Exemples :
    Options de l'attribut : `Shape` (Grid ou Strips), `SquareCells` (cases carrées, pour tourner des pièces),
    `MinGrid` / `MaxGrid` (bornes par côté), `GridFactor` (grille plus petite/grande que la courbe de difficulté).
    Surcharge aussi `DragStyle` (`Swap`, `Insert`, `Slide` ou `None`) pour choisir comment le plateau réagit au glisser.
-   Exemples complets : `SwapTilesMode`, `StripsMode`, `SlidingMode`, `RotateMode` dans `Assets/_Project/Core/Modes/`.
+   Exemples complets : `SwapTilesMode`, `StripsMode`, `SlidingMode`, `RotateMode`, `MemoryMode` dans `Assets/_Project/Core/Modes/`.
+   Un mode dont les pièces ne bougent pas mais sont « faites » autrement (paires trouvées…) surcharge `IsDone(piece)` :
+   c'est lui qui déclenche `OnPieceCorrect` et la victoire. Un mode à cartes face cachée implémente en plus `ICardMode`
+   (le plateau dessine alors le dos des cartes, les symboles et les retournements).
 2. C'est tout : le registre (`PuzzleModeRegistry`) le trouve par réflexion. Il devient utilisable avec
    `"defaultMode": "MonMode"` ou `"mode": "MonMode"` sur un niveau.
 3. Ajoute la phrase d'aide `"mode.MonMode.help"` dans `Resources/Localization/en.json` et `fr.json`.
@@ -45,6 +48,25 @@ Exemples :
 
 Règles : la logique d'un mode ne connaît pas l'affichage. `BoardView` relit `Pieces` (case, rotation, verrouillage)
 après chaque `OnMove`. Utilise `SupportsLocking`, `SwapCells`, `ApplyArrangement`, `Commit` de `PuzzleModeBase`.
+
+## Mode Memory (paires)
+
+- Toutes les cases sont des **cartes face cachée**. Une carte retournée montre **son morceau de l'image** (celui de sa
+  place) et un **symbole** ; chaque symbole est sur deux cartes.
+- Deux cartes au même symbole restent visibles : ces **deux morceaux de l'image sont faits**. Deux cartes différentes
+  se retournent après un court instant (ou dès le clic suivant). L'image complète = victoire.
+- Symboles (Studio → Gameplay → *Memory mode* → *Card symbols*, ou par niveau dans Levels) :
+  - **Numbers** : 1, 2, 3… (jusqu'à 50 paires, grille 10 × 10) ;
+  - **Letters** : A à Z (26 paires) ;
+  - **Colors** : un **contour coloré** (12 couleurs, 12 paires) ; avec l'option daltonien du joueur, les numéros
+    s'ajoutent aux couleurs.
+- La taille suit la courbe de difficulté comme les autres modes (« taille 4 » ≈ 4 × 4 cartes), réduite si le style
+  n'a pas assez de symboles. Une grille impaire (3 × 3, 5 × 5…) a une **carte libre** au centre, visible dès le début.
+- Score : 1 coup = 2 cartes retournées. Par ≈ 1,6 coup par paire (ce qu'il faut avec une mémoire parfaite).
+  Indice = surligne une paire (ou la carte qui va avec celle déjà retournée). Pas d'annulation dans ce mode.
+- Le dos des cartes prend la couleur principale du thème (ou celle de l'image avec *Colors from pictures*).
+- `game.json` : `"defaultMode": "Memory"` ou `"mode": "Memory"` sur un niveau ; `"memorySymbols": "Numbers" | "Letters" |
+  "Colors"` dans `gameplay`, et `"symbols"` sur un niveau pour le changer seulement là.
 
 ## Textes, traductions et crédits (onglet Texts du Studio)
 

@@ -39,6 +39,8 @@ namespace PuzzleStudio.Core.Puzzle
         public StripsOrientation StripsOrientation = StripsOrientation.Vertical;
         /// <summary>Allowed initial rotations in degrees (Rotate mode).</summary>
         public List<int> RotateSteps = new List<int> { 90, 180, 270 };
+        /// <summary>Card symbols (Memory mode).</summary>
+        public MemorySymbols MemorySymbols = MemorySymbols.Numbers;
     }
 
     public sealed class PieceState
@@ -102,7 +104,7 @@ namespace PuzzleStudio.Core.Puzzle
         public readonly int PrimaryPiece;
         /// <summary>Second piece involved (swap partner), or -1.</summary>
         public readonly int SecondaryPiece;
-        /// <summary>Number of moves this action counts for (a sliding row of 3 tiles = 3).</summary>
+        /// <summary>Number of moves this action counts for (a sliding row of 3 tiles = 3; 0 = not a move, e.g. the first card of a pair).</summary>
         public readonly int Count;
 
         public PuzzleMove(int primary, int secondary, bool isUndo, int count = 1)
@@ -110,7 +112,7 @@ namespace PuzzleStudio.Core.Puzzle
             PrimaryPiece = primary;
             SecondaryPiece = secondary;
             IsUndo = isUndo;
-            Count = count < 1 ? 1 : count;
+            Count = count < 0 ? 0 : count;
         }
     }
 

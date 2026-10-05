@@ -30,7 +30,7 @@ namespace PuzzleStudio.Game.Gameplay
             if (IsRunning && !IsPaused) Elapsed += dt;
         }
 
-        public void CountMove(int count = 1) { if (IsRunning) Moves += count < 1 ? 1 : count; }
+        public void CountMove(int count = 1) { if (IsRunning && count > 0) Moves += count; }
         public void CountHint() => HintsUsed++;
         public void MarkPreviewUsed() => UsedPreview = true;
 

@@ -11,6 +11,8 @@ namespace PuzzleStudio.Core.Data
         public string name = "";
         /// <summary>null = gameplay.defaultMode.</summary>
         public string mode = null;
+        /// <summary>Memory mode: card symbols for this level. null = gameplay.memorySymbols.</summary>
+        public MemorySymbols? symbols = null;
         /// <summary>null = difficulty curve.</summary>
         public GridOverride grid = null;
         /// <summary>Normalized crop rectangle (0..1, origin top-left).</summary>

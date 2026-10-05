@@ -12,7 +12,7 @@ namespace PuzzleStudio.Game.Bootstrap
 {
     /// <summary>
     /// Developer tool for automated visual checks (external screen capture sees the GPU surface as black):
-    ///   Game.exe -pack X -capture out.png [-captureDelay 2] [-debugAction select|hint|solve|partial] [-captureQuit]
+    ///   Game.exe -pack X -capture out.png [-captureDelay 2] [-debugAction select|hint|solve|partial|flip|mismatch] [-captureQuit]
     /// Several captures: -capture a.png;b.png with -debugAction none;solve.
     /// Navigation actions: menu, levels, settings, credits, end, pause, achievements, play1 (level 1)…, combined with "+".
     /// "-tempSave" uses a fresh throw-away save, "-demoProgress" fills it, "-mute" silences, "-noSteam" skips Steam.
@@ -56,7 +56,9 @@ namespace PuzzleStudio.Game.Bootstrap
                     else if (part == "perf") yield return MeasurePerformance();
                     else Perform(root, part);
                 }
-                yield return new WaitForSecondsRealtime(action.EndsWith("solve") ? 4.2f : 1.0f);
+                // Memory cards turned over are captured before they are turned back (GameplayController.MismatchDelay).
+                float wait = action.EndsWith("solve") ? 4.2f : action.EndsWith("mismatch") || action.EndsWith("flip") ? 0.6f : 1.0f;
+                yield return new WaitForSecondsRealtime(wait);
                 string path = Path.GetFullPath(paths[i]);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 ScreenCapture.CaptureScreenshot(path);
@@ -104,7 +106,23 @@ namespace PuzzleStudio.Game.Bootstrap
                     g.RequestHint();
                     break;
                 case "partial":
-                    SolveCells(mode, mode.Layout.CellCount / 2);
+                    if (mode is ICardMode) MatchPairs(mode, mode.Layout.CellCount / 4);
+                    else SolveCells(mode, mode.Layout.CellCount / 2);
+                    break;
+                case "flip":       // Memory: turns over the first card still face down
+                    for (int c = 0; c < mode.Layout.CellCount; c++)
+                        if (mode.CanPick(c)) { mode.HandleInput(PuzzleInput.Tap(c)); break; }
+                    break;
+                case "mismatch":   // Memory: turns over two different cards
+                    if (mode is ICardMode cards)
+                        for (int a = 0; a < mode.Layout.CellCount; a++)
+                            for (int b = a + 1; b < mode.Layout.CellCount; b++)
+                                if (mode.CanPick(a) && mode.CanPick(b) && cards.SymbolOf(a) != cards.SymbolOf(b))
+                                {
+                                    mode.HandleInput(PuzzleInput.Tap(a));
+                                    mode.HandleInput(PuzzleInput.Tap(b));
+                                    return;
+                                }
                     break;
                 case "solve":
                     mode.ForceSolve();
@@ -179,6 +197,33 @@ namespace PuzzleStudio.Game.Bootstrap
             InputSystem.QueueStateEvent(_virtualPad, new GamepadState());
             yield return null;
             yield return new WaitForSecondsRealtime(0.15f);
+        }
+
+        /// <summary>Memory: finds <paramref name="count"/> pairs.</summary>
+        static void MatchPairs(IPuzzleMode mode, int count)
+        {
+            var cards = (ICardMode)mode;
+            cards.ResolveMismatch();
+            for (int a = 0; a < mode.Layout.CellCount && count > 0; a++)
+                if (cards.IsFaceUp(a) && !cards.IsMatched(a))
+                {
+                    // A card already turned over is completed first.
+                    for (int b = 0; b < mode.Layout.CellCount; b++)
+                        if (b != a && cards.SymbolOf(b) == cards.SymbolOf(a)) { mode.HandleInput(PuzzleInput.Tap(b)); count--; break; }
+                    break;
+                }
+            for (int a = 0; a < mode.Layout.CellCount && count > 0; a++)
+            {
+                if (!mode.CanPick(a)) continue;
+                for (int b = a + 1; b < mode.Layout.CellCount; b++)
+                    if (mode.CanPick(b) && cards.SymbolOf(b) == cards.SymbolOf(a))
+                    {
+                        mode.HandleInput(PuzzleInput.Tap(a));
+                        mode.HandleInput(PuzzleInput.Tap(b));
+                        count--;
+                        break;
+                    }
+            }
         }
 
         static void SolveCells(IPuzzleMode mode, int count)

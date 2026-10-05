@@ -1,5 +1,37 @@
 # Changelog
 
+## [Mode Memory] Nouveau mode de jeu : les paires — 2026-10-05
+
+### Ajouté
+- **Mode Memory** : toutes les cases sont des cartes **face cachée**. Une carte retournée montre **le morceau de l'image
+  de sa place** et son **symbole** ; deux cartes au même symbole restent visibles et **leurs deux morceaux de l'image
+  sont faits**. Deux cartes différentes se retournent toutes seules après ~1 s (ou au clic suivant). Toute l'image
+  découverte = victoire.
+- **3 styles de symboles** : **chiffres** (1…50), **lettres** (A…Z) ou **couleur de contour** (12 couleurs bien
+  distinctes, avec un liseré sombre pour rester visibles sur toute image). Option daltonien du joueur : les numéros
+  s'ajoutent aux couleurs.
+- Animation de **retournement** (la carte pivote), cartes retournées soulevées, pause d'un instant sur une paire trouvée
+  puis les symboles disparaissent avec un éclat : seule l'image reste.
+- **Dos des cartes** dessiné par le shader (losanges, cadre, motif central) dans la couleur principale du thème
+  ou celle de l'image (*Colors from pictures*).
+- Grille : suit la difficulté (taille N ≈ N × N cartes, max 10 × 10), réduite si le style n'a pas assez de symboles ;
+  grille impaire → une **carte libre** au centre.
+- Score : 1 coup = 1 paire de cartes retournée ; par ≈ 1,6 coup par paire. Indice : surligne une paire (ou la carte
+  qui va avec celle déjà retournée) et y déplace le curseur à la manette. Jouable souris, clavier (Entrée) et manette (A).
+- **Studio** : mode « Memory » dans les listes, section **Memory mode** (onglet Gameplay) pour choisir les symboles,
+  choix par niveau (« Card symbols » dans l'onglet Levels).
+- Exemples : un niveau Memory dans chaque SamplePack (chiffres dans Cozy Puzzles, couleurs dans Neon Nights,
+  lettres dans Quiet Shapes).
+- Tests : 23 tests EditMode (distribution des paires, carte libre, paire trouvée / ratée, 3e clic, victoire unique,
+  indice, par, styles, grille, JSON) et 1 test PlayMode (partie complète à la manette virtuelle, cartes qui se
+  retournent toutes seules). Total : 201 EditMode + 5 PlayMode.
+
+### Technique
+- `PuzzleModeBase.IsDone(piece)` (surchargeable) remplace le test « bien placée » pour `OnPieceCorrect` et la victoire.
+- `ICardMode` (cartes face cachée), `CardSymbols` (libellés, couleurs, ajustement de la grille).
+- Un `PuzzleMove` peut compter 0 coup (la première carte d'une paire).
+- Actions de capture `flip` et `mismatch` ; `partial` trouve un quart des paires en mode Memory.
+
 ## [Jalon 10] Passe qualité + couleurs selon les images — 2026-10-05
 
 ### Amélioré

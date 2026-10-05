@@ -15,6 +15,8 @@ namespace PuzzleStudio.Game.Gameplay
     {
         public const float ReferenceHeight = 1080f;
         public const float MoveDuration = 0.28f;
+        /// <summary>Memory: how long a found pair keeps its symbols before they make way for the picture.</summary>
+        public const float CardHold = 0.7f;
 
         readonly List<PieceView> _pool = new List<PieceView>();
         PieceView[] _views = System.Array.Empty<PieceView>();   // by piece id
@@ -23,6 +25,8 @@ namespace PuzzleStudio.Game.Gameplay
         Material _material;
 
         IPuzzleMode _mode;
+        ICardMode _cards;                       // Memory mode, else null
+        bool[] _completed = System.Array.Empty<bool>();
         Texture2D _texture;
         ThemeService _theme;
         PieceStyle _style;
@@ -59,6 +63,10 @@ namespace PuzzleStudio.Game.Gameplay
         public int CursorCell => _cursorCell;
         public bool CursorVisible => _cursorVisible;
         public int HoverCell => _hoverCell;
+        /// <summary>Time for the last move to finish on screen before the victory starts.</summary>
+        public float SettleTime => _cards != null ? CardHold + 0.3f : MoveDuration + 0.1f;
+        /// <summary>The view of a piece (tests, debug).</summary>
+        public PieceView ViewOf(int pieceId) => pieceId >= 0 && pieceId < _views.Length ? _views[pieceId] : null;
 
         public void Init(Camera cam, ThemeService theme)
         {
@@ -72,6 +80,8 @@ namespace PuzzleStudio.Game.Gameplay
         public void Build(IPuzzleMode mode, Texture2D texture, PieceStyle style)
         {
             _mode = mode;
+            _cards = mode as ICardMode;
+            _completed = new bool[mode.Layout.CellCount];
             _texture = texture;
             _style = style ?? new PieceStyle();
             _hint = Hint.None;
@@ -99,6 +109,7 @@ namespace PuzzleStudio.Game.Gameplay
                 v.SetSorting(0);
                 _views[i] = v;
             }
+            ApplyCardColors();
 
             if (_preview == null) _preview = CreatePieceView("Preview");
             _preview.Init(-1, _quad, _material, texture, ImageSlicer.CropUV(layout.Crop));
@@ -117,6 +128,7 @@ namespace PuzzleStudio.Game.Gameplay
             HideCursor();
             _views = System.Array.Empty<PieceView>();
             _mode = null;
+            _cards = null;
         }
 
         // ------------------------------------------------------------------ layout
@@ -142,6 +154,7 @@ namespace PuzzleStudio.Game.Gameplay
             _cell = new Vector2(w / _mode.Layout.Cols, h / _mode.Layout.Rows);
 
             ApplyPieceStyle();
+            ApplyCardColors();
             _preview.SetStyle(_boardRect.size, _style.cornerRadius * _px, 0f, Color.clear);
             _preview.SnapTo(new Vector3(_boardRect.center.x, _boardRect.center.y, 0f));
             Sync(animate: false);
@@ -162,6 +175,16 @@ namespace PuzzleStudio.Game.Gameplay
                 v.SetStyle(size, radius, border, borderColor, ring);
                 v.SetShadow(shadow, Mathf.Max(1f, _style.shadowOffset) * _px, 6f * _px, _style.liftScale);
             }
+        }
+
+        /// <summary>Memory card backs use the theme's main color (or the picture's, with "colors from pictures").</summary>
+        void ApplyCardColors()
+        {
+            if (_cards == null) return;
+            Color back = _theme.Palette.Primary;
+            back.a = 1f;
+            Color pattern = ColorUtil.RelativeLuminance(back) > 0.4f ? ColorUtil.Shade(back, -0.3f) : ColorUtil.Shade(back, 0.32f);
+            foreach (var v in _views) v.SetCard(back, pattern);
         }
 
         public Vector3 CellCenter(int cell)
@@ -199,12 +222,51 @@ namespace PuzzleStudio.Game.Gameplay
                 else v.SnapTo(target);
                 v.SetRotation(p.Rotation, animate);
             }
+            if (_cards != null) SyncCards(animate);
             RefreshHighlights();
+        }
+
+        /// <summary>Memory: turns the cards to match the logic (face down / face up with symbol / found pair).</summary>
+        void SyncCards(bool animate)
+        {
+            var style = _cards.Symbols;
+            // Colorblind players also get numbers on colored cards.
+            bool numbersToo = style == MemorySymbols.Colors && _theme.ColorblindMode;
+            foreach (var p in _mode.Pieces)
+            {
+                int cell = p.Cell;
+                var v = _views[p.Id];
+                int symbol = _cards.SymbolOf(cell);
+                string label = style == MemorySymbols.Colors
+                    ? (numbersToo ? CardSymbols.Label(MemorySymbols.Numbers, symbol) : "")
+                    : CardSymbols.Label(style, symbol);
+                Color outline = style == MemorySymbols.Colors ? CardSymbols.ColorOf(symbol) : Color.clear;
+
+                if (_cards.IsMatched(cell))
+                {
+                    if (_completed[cell]) continue;
+                    _completed[cell] = true;
+                    if (symbol < 0 || !animate)
+                    {
+                        v.SetCardFace(true, "", Color.clear, false);   // free card, or a board shown already solved
+                        continue;
+                    }
+                    // Both symbols stay visible a moment, then the two pieces of the picture are done.
+                    v.SetCardFace(true, label, outline, true);
+                    v.CompleteCard(CardHold, _style.correctGlow ? _theme.GlowColor : Color.clear);
+                }
+                else
+                {
+                    _completed[cell] = false;
+                    v.SetCardFace(_cards.IsFaceUp(cell), label, outline, animate);
+                }
+            }
         }
 
         public void PlayCorrect(int pieceId)
         {
             if (pieceId < 0 || pieceId >= _views.Length) return;
+            if (_cards != null) return;   // cards pop when their symbols disappear (SyncCards)
             if (_style.correctGlow) _views[pieceId].Pop(_theme.GlowColor);
         }
 
@@ -382,8 +444,10 @@ namespace PuzzleStudio.Game.Gameplay
                 if (_hintTime > 0f && (cell == _hint.FromCell || cell == _hint.ToCell)) a = Mathf.Max(a, pulse);
                 v.SetHighlight(a, hl);
 
+                // Memory: the cards turned over in this attempt are lifted.
+                bool open = _cards != null && _cards.IsFaceUp(cell) && !_cards.IsMatched(cell);
                 if (p.Id != _dragPiece)
-                    v.SetScaleTarget(cell == sel ? _style.liftScale : cell == _hoverCell && _mode.CanPick(cell) && _dragCell < 0 ? _style.hoverScale : 1f);
+                    v.SetScaleTarget(cell == sel || open ? _style.liftScale : cell == _hoverCell && _mode.CanPick(cell) && _dragCell < 0 ? _style.hoverScale : 1f);
             }
         }
 

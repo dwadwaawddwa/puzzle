@@ -29,14 +29,21 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Back: 0
+    - _BadgeRadius: 0
     - _Border: 0.02
     - _HighlightWidth: 0.05
     - _Hollow: 0
+    - _OutlineWidth: 0
     - _Radius: 0.08
     - _Softness: 0
     m_Colors:
+    - _BackColor: {r: 0.3, g: 0.4, b: 0.8, a: 1}
+    - _BackColor2: {r: 0.5, g: 0.6, b: 1, a: 1}
+    - _Badge: {r: 0, g: 0, b: 0, a: 0}
     - _BorderColor: {r: 1, g: 1, b: 1, a: 1}
     - _Highlight: {r: 1, g: 0.8, b: 0.3, a: 0}
+    - _Outline: {r: 0, g: 0, b: 0, a: 0}
     - _Size: {r: 1, g: 1, b: 0, a: 0}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
     - _UVRect: {r: 0, g: 0, b: 1, a: 1}

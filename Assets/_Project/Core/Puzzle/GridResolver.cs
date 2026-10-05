@@ -28,6 +28,7 @@ namespace PuzzleStudio.Core.Puzzle
             if (!PuzzleModeRegistry.IsRegistered(modeId)) modeId = ModeIds.SwapTiles;
             var info = PuzzleModeRegistry.InfoOf(modeId) ?? new PuzzleModeAttribute(modeId);
 
+            var symbols = level.symbols ?? g.memorySymbols;
             var crop = level.crop ?? new CropRect();
             float aspect = ImageSlicer.CroppedAspect(texWidth, texHeight, crop);
             float t = pack.levels.Count > 1 ? (float)levelIndex / (pack.levels.Count - 1) : 0f;
@@ -67,6 +68,7 @@ namespace PuzzleStudio.Core.Puzzle
                 }
                 cols = Clamp(cols, info.MinGrid, Math.Min(MaxGrid, info.MaxGrid));
                 rows = Clamp(rows, info.MinGrid, Math.Min(MaxGrid, info.MaxGrid));
+                if (modeId == ModeIds.Memory) (cols, rows) = CardSymbols.Fit(cols, rows, aspect, info.MinGrid, symbols);
             }
 
             if (info.SquareCells)
@@ -86,6 +88,7 @@ namespace PuzzleStudio.Core.Puzzle
                     MinMisplacedRatio = g.minMisplacedRatio,
                     StripsOrientation = g.stripsOrientation,
                     RotateSteps = g.rotateSteps,
+                    MemorySymbols = symbols,
                 },
                 Seed = level.seed ?? StableHash.Fnv1a(level.id),
             };

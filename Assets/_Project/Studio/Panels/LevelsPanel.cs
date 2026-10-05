@@ -201,9 +201,25 @@ namespace PuzzleStudio.Studio.Panels
             int current = level.mode == null ? 0 : modes.IndexOf(level.mode) + 1;
             box.Add(Fields.Dropdown("Mode", choices, Mathf.Max(0, current), i =>
             {
+                bool wasMemory = (level.mode ?? Pack.gameplay.defaultMode) == ModeIds.Memory;
                 level.mode = i <= 0 ? null : modes[i - 1];
-                Changed();
+                bool isMemory = (level.mode ?? Pack.gameplay.defaultMode) == ModeIds.Memory;
+                Changed(rebuildInspector: wasMemory != isMemory);
             }));
+
+            // Memory: symbols on the cards
+            if ((level.mode ?? Pack.gameplay.defaultMode) == ModeIds.Memory)
+            {
+                var styles = (MemorySymbols[])System.Enum.GetValues(typeof(MemorySymbols));
+                var symbolChoices = new List<string> { $"Default ({Pack.gameplay.memorySymbols})" };
+                symbolChoices.AddRange(styles.Select(s => s.ToString()));
+                int symbolIndex = level.symbols.HasValue ? System.Array.IndexOf(styles, level.symbols.Value) + 1 : 0;
+                box.Add(Fields.Dropdown("Card symbols", symbolChoices, symbolIndex, i =>
+                {
+                    level.symbols = i <= 0 ? (MemorySymbols?)null : styles[i - 1];
+                    Changed();
+                }));
+            }
 
             // Grid override
             var preview = App.CurrentGrid();

@@ -74,6 +74,7 @@
   "mode.Strips.help": "Faites glisser une bande à sa place : les autres se décalent.",
   "mode.Sliding.help": "Cliquez sur une tuile alignée avec le trou pour la faire glisser (les flèches marchent aussi).",
   "mode.Rotate.help": "Cliquez sur une tuile pour la tourner — clic droit pour l'autre sens.",
+  "mode.Memory.help": "Retournez deux cartes : même symbole, elles restent visibles. Trouvez toutes les paires pour révéler l'image.",
   "victory.move": "{0} coup",
   "menu.achievements": "Succès",
   "achievements.title": "Succès",
@@ -145,7 +146,9 @@
   "mode.Sliding.help.pad": "Poussez les tuiles dans le trou avec la croix.",
   "mode.Sliding.help.keys": "Poussez les tuiles dans le trou avec les flèches.",
   "mode.Rotate.help.pad": "Déplacez-vous avec la croix : A tourne une tuile, RB la tourne dans l'autre sens.",
+  "mode.Memory.help.pad": "Déplacez-vous avec la croix : A retourne une carte. Trouvez toutes les paires pour révéler l'image.",
   "mode.Rotate.help.keys": "Déplacez-vous avec les flèches : Entrée tourne une tuile, Q la tourne dans l'autre sens.",
+  "mode.Memory.help.keys": "Déplacez-vous avec les flèches : Entrée retourne une carte. Trouvez toutes les paires pour révéler l'image.",
   "menu.quitConfirm": "Quitter le jeu ?",
   "menu.quitYes": "Quitter",
   "achievements.toastMany": "{0} SUCCÈS DÉBLOQUÉS"

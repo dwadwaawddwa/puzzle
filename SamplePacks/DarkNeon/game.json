@@ -28,6 +28,7 @@
       270
     ],
     "lockCorrectPieces": true,
+    "memorySymbols": "Numbers",
     "minMisplacedRatio": 0.8,
     "unlockRule": "Sequential",
     "starsToUnlockPerLevel": 2,
@@ -145,6 +146,7 @@
       "image": "levels/01.png",
       "name": "Synth Horizon",
       "mode": null,
+      "symbols": null,
       "grid": null,
       "crop": {
         "x": 0.0,
@@ -160,6 +162,7 @@
       "image": "levels/02.png",
       "name": "Circuit Glass",
       "mode": null,
+      "symbols": null,
       "grid": null,
       "crop": {
         "x": 0.0,
@@ -175,6 +178,7 @@
       "image": "levels/03.png",
       "name": "Pulse",
       "mode": "Rotate",
+      "symbols": null,
       "grid": null,
       "crop": {
         "x": 0.0,
@@ -190,6 +194,23 @@
       "image": "levels/04.png",
       "name": "City Lights",
       "mode": "Strips",
+      "symbols": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_05",
+      "image": "levels/05.png",
+      "name": "Glow Pairs",
+      "mode": "Memory",
+      "symbols": "Colors",
       "grid": null,
       "crop": {
         "x": 0.0,

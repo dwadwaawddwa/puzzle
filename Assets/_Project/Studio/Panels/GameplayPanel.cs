@@ -24,6 +24,7 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.Dropdown("Mode", names, modes.IndexOf(g.defaultMode), i => { if (i >= 0) { g.defaultMode = modes[i]; Changed(); } }),
                 Fields.Hint("Swap Tiles: swap two tiles. Strips: drag strips into order (the others shift). " +
                             "Sliding: the classic sliding puzzle with one gap (max 6 × 6). Rotate: tiles are in place but turned — click to rotate. " +
+                            "Memory: every tile is a hidden card — find the pairs to uncover the picture. " +
                             "Each level can use another mode (Levels tab)."),
                 Fields.Toggle("Lock correct tiles", g.lockCorrectPieces, v => { g.lockCorrectPieces = v; Changed(); }),
                 Fields.FloatSlider("Min. shuffled", 0.3f, 1f, g.minMisplacedRatio, v => { g.minMisplacedRatio = v; Changed(); })));
@@ -64,6 +65,13 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.IntSlider("Strips: last level", 2, 24, strips.max, v => { strips.max = v; if (strips.min > v) strips.min = v; Changed(rebuildInspector: true); }),
                 Fields.Hint("Vertical = columns to reorder, Horizontal = rows. With a Fixed curve the first value is used.")));
 
+            content.Add(Fields.Section("Memory mode",
+                Fields.Enum("Card symbols", g.memorySymbols, v => { g.memorySymbols = v; Changed(); }),
+                Fields.Hint("A turned card shows its own piece of the picture and its symbol; the two cards with the same symbol make a pair. " +
+                            "Numbers: up to 50 pairs. Letters: A to Z (26 pairs). Colors: a colored outline (12 pairs; players with the " +
+                            "colorblind option also see numbers). Bigger grids are reduced to fit; an odd grid gets one free card in the middle. " +
+                            "Each level can choose its own symbols (Levels tab).")));
+
             content.Add(Fields.Section("Progression",
                 Fields.Enum("Unlock levels", g.unlockRule, v => { g.unlockRule = v; Changed(); }),
                 Fields.IntSlider("Stars to unlock", 0, 3, g.starsToUnlockPerLevel, v => { g.starsToUnlockPerLevel = v; Changed(); }),
@@ -82,7 +90,7 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.FloatSlider("3 stars up to par ×", 1f, 3f, r.threeStarsMoveFactor, v => { r.threeStarsMoveFactor = v; Changed(); }),
                 Fields.FloatSlider("2 stars up to par ×", 1f, 5f, r.twoStarsMoveFactor, v => { r.twoStarsMoveFactor = v; Changed(); }),
                 Fields.Toggle("Hint costs a star", r.hintCostsStar, v => { r.hintCostsStar = v; Changed(); }),
-                Fields.Hint("Par = the smallest possible number of moves for the shuffled board.")));
+                Fields.Hint("Par = the smallest possible number of moves for the shuffled board (Memory: about 1.6 tries per pair, what a perfect memory needs).")));
         }
     }
 }

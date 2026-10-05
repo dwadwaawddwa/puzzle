@@ -6,7 +6,7 @@ Un même projet Unity produit deux programmes :
 
 | Programme | Rôle | État |
 |---|---|---|
-| **Player Template** (`Build/Template/Game.exe`) | Le jeu générique. Il ne contient aucun contenu et se construit tout seul à partir d'un **Game Pack** (JSON + images). | ✅ 1.0 : 4 modes, menus, succès, Steam, manette / Steam Deck, accessibilité |
+| **Player Template** (`Build/Template/Game.exe`) | Le jeu générique. Il ne contient aucun contenu et se construit tout seul à partir d'un **Game Pack** (JSON + images). | ✅ 1.0 : 5 modes (dont Memory), menus, succès, Steam, manette / Steam Deck, accessibilité |
 | **PuzzleStudio.exe** (`Build/PuzzleStudio/`) | L'outil de création : projets, niveaux, thème, audio, textes, Steam, aperçu en direct jouable, Play Test, export du jeu final | ✅ 1.0 |
 
 Les 10 jalons du plan sont terminés. Avant de publier un jeu : [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
@@ -78,6 +78,7 @@ play_sample.bat MinimalWhite
 | Prendre / poser (Swap, Strips), tourner (Rotate) | clic, ou glisser | **Entrée** | **A** |
 | Tourner dans l'autre sens (Rotate) | clic droit | **Q** | **RB** |
 | Taquin (Sliding) | clic sur une tuile alignée avec le trou | **flèches** | **croix** / stick |
+| Retourner une carte (Memory) | clic | **Entrée** | **A** |
 | Aperçu de l'image | maintenir **Preview** | maintenir **Espace** | maintenir **Y** |
 | Indice | **Hint** | **H** | **X** |
 | Annuler | **Undo** | **Ctrl+Z** ou **Retour arrière** | **LB** |
@@ -135,7 +136,7 @@ Assets/_Project/Studio   outil de création — PuzzleStudio.asmdef : StudioApp 
 Assets/_Project/Shaders  Piece.shader (coins arrondis SDF, bordure, surbrillance)
 Assets/_Project/Resources  polices OFL, en.json, USS, PanelSettings, matériau
 Assets/Editor/BuildTools   setup du projet, génération des SamplePacks, builds
-Assets/Tests             EditMode (178 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
+Assets/Tests             EditMode (201 tests) + PlayMode (5 tests : parcours complet + niveaux joués à la manette virtuelle, dont un Memory)
 SamplePacks/             CozyPastel, DarkNeon, MinimalWhite
 _Legacy/                 ancien générateur (non compilé, conservé pour référence)
 ```

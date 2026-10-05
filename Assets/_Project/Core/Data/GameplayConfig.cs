@@ -17,6 +17,8 @@ namespace PuzzleStudio.Core.Data
         public StripsOrientation stripsOrientation = StripsOrientation.Vertical;
         public List<int> rotateSteps = new List<int> { 90, 180, 270 };
         public bool lockCorrectPieces = true;
+        /// <summary>Memory mode: symbol shown on the cards (a level can override it).</summary>
+        public MemorySymbols memorySymbols = MemorySymbols.Numbers;
         /// <summary>Minimum ratio of misplaced pieces after a shuffle (0..1).</summary>
         public float minMisplacedRatio = 0.8f;
         public UnlockRule unlockRule = UnlockRule.Sequential;

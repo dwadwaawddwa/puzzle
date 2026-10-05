@@ -25,6 +25,7 @@ namespace PuzzleStudio.EditorTools.BuildTools
         sealed class LevelSpec
         {
             public string Mode;
+            public MemorySymbols? Symbols;
             public string Name;
             public int W, H;
             public Painter Paint;
@@ -63,6 +64,7 @@ namespace PuzzleStudio.EditorTools.BuildTools
                 new LevelSpec { Name = "Candy Stripes", W = 1920, H = 1080, Paint = Stripes, Jpg = true, Mode = "Strips" },
                 new LevelSpec { Name = "Quiet Forest", W = 1600, H = 1200, Paint = Forest, Mode = "Sliding" },
                 new LevelSpec { Name = "Moonlit Peaks", W = 1080, H = 1440, Paint = NightSky },
+                new LevelSpec { Name = "Hidden Valley", W = 1600, H = 1200, Paint = Hills, Mode = "Memory" },
             });
         }
 
@@ -99,6 +101,7 @@ namespace PuzzleStudio.EditorTools.BuildTools
                 new LevelSpec { Name = "Circuit Glass", W = 1600, H = 1200, Paint = Mosaic },
                 new LevelSpec { Name = "Pulse", W = 1400, H = 1400, Paint = Rings, Mode = "Rotate" },
                 new LevelSpec { Name = "City Lights", W = 1920, H = 1080, Paint = NightSky, Mode = "Strips" },
+                new LevelSpec { Name = "Glow Pairs", W = 1600, H = 1200, Paint = Mosaic, Mode = "Memory", Symbols = MemorySymbols.Colors },
             });
         }
 
@@ -135,6 +138,7 @@ namespace PuzzleStudio.EditorTools.BuildTools
                 new LevelSpec { Name = "Echo", W = 1400, H = 1400, Paint = Rings },
                 new LevelSpec { Name = "Lines", W = 1920, H = 1080, Paint = Stripes },
                 new LevelSpec { Name = "Ridge", W = 1920, H = 1080, Paint = Hills },
+                new LevelSpec { Name = "Paper Forest", W = 1600, H = 1200, Paint = Forest, Mode = "Memory", Symbols = MemorySymbols.Letters },
             });
         }
 
@@ -158,6 +162,7 @@ namespace PuzzleStudio.EditorTools.BuildTools
                     image = $"{PackPaths.LevelsDir}/{file}",
                     name = s.Name,
                     mode = s.Mode,
+                    symbols = s.Symbols,
                 });
             }
             GamePackWriter.WriteJson(pack, dir);

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using NUnit.Framework;
+using PuzzleStudio.Core.Modes;
 using PuzzleStudio.Core.Puzzle;
 using PuzzleStudio.Game.Bootstrap;
 using PuzzleStudio.Game.Gameplay;
@@ -93,6 +94,54 @@ namespace PuzzleStudio.Tests
             Assert.IsTrue(mode.IsSolved());
             Assert.IsTrue(g.Session.IsSolved);
             Assert.AreEqual(-1, g.CursorCell, "cursor hidden for the victory");
+        }
+
+        [UnityTest]
+        public IEnumerator Gamepad_PlaysMemory()
+        {
+            var root = Launch(StartScreen.Gameplay, 6);   // level 7: memory (numbers)
+            yield return null;
+            var g = root.Gameplay;
+            var memory = g.Mode as MemoryMode;
+            Assume.That(memory, Is.Not.Null, "level 7 of CozyPastel is a memory game");
+            int n = memory.Layout.CellCount;
+            Assert.IsTrue(g.Board.ViewOf(0).IsCard);
+            Assert.IsFalse(g.Board.ViewOf(0).ShowsFace, "cards start face down");
+
+            yield return Press(GamepadButton.DpadRight);
+            Assert.GreaterOrEqual(g.CursorCell, 0);
+
+            // Two different cards: both shown with their numbers, then turned back by themselves.
+            int a = 0, b = 1;
+            while (memory.SymbolOf(b) == memory.SymbolOf(a) || memory.IsMatched(b)) b++;
+            yield return MoveCursorTo(g, a);
+            yield return Press(GamepadButton.South);
+            yield return MoveCursorTo(g, b);
+            yield return Press(GamepadButton.South);
+            Assert.IsTrue(memory.HasMismatch);
+            Assert.AreEqual(1, g.Session.Moves, "one move per pair of cards");
+            yield return new WaitForSecondsRealtime(0.5f);
+            Assert.IsTrue(g.Board.ViewOf(a).ShowsFace);
+            Assert.AreEqual((memory.SymbolOf(a) + 1).ToString(), g.Board.ViewOf(a).Label);
+            yield return new WaitForSecondsRealtime(GameplayController.MismatchDelay);
+            Assert.IsFalse(memory.IsFaceUp(a) || memory.IsFaceUp(b), "turned back after a moment");
+
+            // Then every pair, straight away.
+            for (int c = 0; c < n; c++)
+            {
+                if (memory.IsMatched(c)) continue;
+                yield return MoveCursorTo(g, c);
+                yield return Press(GamepadButton.South);
+                Assert.IsTrue(memory.IsFaceUp(c), "A turns the card over");
+                yield return MoveCursorTo(g, memory.PartnerOf(c));
+                yield return Press(GamepadButton.South);
+                Assert.IsTrue(memory.IsMatched(c));
+            }
+            Assert.IsTrue(memory.IsSolved());
+            Assert.IsTrue(g.Session.IsSolved);
+            Assert.AreEqual(1 + memory.PairCount, g.Session.Moves);
+            yield return new WaitForSecondsRealtime(BoardView.CardHold + 0.4f);
+            Assert.AreEqual("", g.Board.ViewOf(a).Label, "found pairs leave only the picture");
         }
 
         [UnityTest]

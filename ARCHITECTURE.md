@@ -59,7 +59,7 @@ PuzzleGenerator/
                        PackPaths, ColorUtil (hex, WCAG contrast)
         Puzzle/        IPuzzleMode, PuzzleModeRegistry, PuzzleState, PuzzleMove, BoardLayout,
                        ShuffleService (seed), SolvabilityChecker, ParCalculator, GridResolver (courbe de difficulté)
-        Modes/         SwapTilesMode, StripsMode, SlidingMode, RotateMode   (logique pure, sans Unity UI)
+        Modes/         SwapTilesMode, StripsMode, SlidingMode, RotateMode, MemoryMode   (logique pure, sans Unity UI)
         Save/          SaveSystem (JSON + .bak + récupération), PlayerProgress, LevelRecord, SettingsData
         Localization/  LocalizationService, (en.json par défaut en Resources)
         Audio/         IAudioService, AudioService (crossfade, pool SFX, variation de pitch)
@@ -93,7 +93,7 @@ PuzzleGenerator/
       BuildTools/      BuildMenu (Build > Player Template / Studio / All), BuildPipeline batchmode,
                        SceneGenerator, SampleImageGenerator, DefaultAudioGenerator
     Tests/
-      EditMode/        Shuffle, Solvability (parité taquin), victoire 4 modes, par, JSON roundtrip,
+      EditMode/        Shuffle, Solvability (parité taquin), victoire des 5 modes, par, JSON roundtrip,
                        migration v0→v1, validator, contraste WCAG, undo
       PlayMode/        charger SamplePack → jouer un niveau scripté → victoire → save relue
   SamplePacks/         CozyPastel/, DarkNeon/, MinimalWhite/   (images générées : dégradés, motifs, formes)
@@ -159,13 +159,14 @@ public interface IPuzzleMode {
     "credits": [ { "role": "Game design", "names": ["Me"] } ]
   },
   "gameplay": {
-    "defaultMode": "SwapTiles",           // SwapTiles | Strips | Sliding | Rotate
+    "defaultMode": "SwapTiles",           // SwapTiles | Strips | Sliding | Rotate | Memory
     "difficultyCurve": "Progressive",     // Fixed | Progressive | Custom
     "minGrid": 3, "maxGrid": 7,           // Progressive : interpolé du 1er au dernier niveau
     "fixedGrid": 4,                       // Fixed
     "stripsCount": { "min": 4, "max": 12 },
     "stripsOrientation": "Vertical",      // Vertical | Horizontal
     "rotateSteps": [90, 180, 270],
+    "memorySymbols": "Numbers",           // Memory : Numbers | Letters | Colors (un niveau peut le changer : "symbols")
     "lockCorrectPieces": true,            // SwapTiles : verrouille les tuiles bien placées
     "minMisplacedRatio": 0.8,
     "unlockRule": "Sequential",           // Sequential | AllUnlocked | ByStars

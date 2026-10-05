@@ -27,6 +27,9 @@ namespace PuzzleStudio.Core.Puzzle
         /// <summary>Whether correctly placed pieces get locked when <see cref="ModeSettings.LockCorrectPieces"/> is on.</summary>
         protected virtual bool SupportsLocking => false;
 
+        /// <summary>Whether a piece is done (in place and upright; Memory: its pair was found). Drives OnPieceCorrect and IsSolved.</summary>
+        protected virtual bool IsDone(PieceState p) => !p.IsEmpty && p.IsCorrect;
+
         public virtual void Setup(BoardLayout board, ModeSettings settings)
         {
             Board = board ?? throw new ArgumentNullException(nameof(board));
@@ -73,14 +76,14 @@ namespace PuzzleStudio.Core.Puzzle
         public virtual bool IsSolved()
         {
             foreach (var p in PiecesById)
-                if (!p.IsEmpty && !p.IsCorrect) return false;
+                if (!p.IsEmpty && !IsDone(p)) return false;
             return true;
         }
 
         public int CountCorrect()
         {
             int c = 0;
-            foreach (var p in PiecesById) if (!p.IsEmpty && p.IsCorrect) c++;
+            foreach (var p in PiecesById) if (!p.IsEmpty && IsDone(p)) c++;
             return c;
         }
 
@@ -127,7 +130,7 @@ namespace PuzzleStudio.Core.Puzzle
             for (int i = 0; i < PiecesById.Length; i++)
             {
                 var p = PiecesById[i];
-                bool correct = !p.IsEmpty && p.IsCorrect;
+                bool correct = !p.IsEmpty && IsDone(p);
                 p.Locked = lockOn && correct;
                 if (raiseEvents && correct && !_correctCache[i]) OnPieceCorrect?.Invoke(i);
                 _correctCache[i] = correct;
