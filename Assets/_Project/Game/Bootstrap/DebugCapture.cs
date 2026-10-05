@@ -5,6 +5,8 @@ using System.IO;
 using PuzzleStudio.Core.Puzzle;
 using PuzzleStudio.Game.Screens;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace PuzzleStudio.Game.Bootstrap
 {
@@ -47,8 +49,12 @@ namespace PuzzleStudio.Game.Bootstrap
             {
                 string action = i < actions.Length ? actions[i] : "none";
                 yield return new WaitForSecondsRealtime(delay);
-                // "play2+partial": several actions before one capture.
-                foreach (var part in action.Split('+')) Perform(root, part);
+                // "play2+partial": several actions before one capture; "pad:right" presses a button of a virtual gamepad.
+                foreach (var part in action.Split('+'))
+                {
+                    if (part.StartsWith("pad:")) yield return PressPad(part.Substring(4));
+                    else Perform(root, part);
+                }
                 yield return new WaitForSecondsRealtime(action.EndsWith("solve") ? 4.2f : 1.0f);
                 string path = Path.GetFullPath(paths[i]);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -79,6 +85,7 @@ namespace PuzzleStudio.Game.Bootstrap
                 case "pause": flow.Pause(); return;
                 case "pausesettings": flow.Pause(); flow.ShowSettings(true); return;
                 case "achievements": flow.ShowAchievements(); return;
+                case "controls": flow.ShowControls(); return;
             }
             if (action.StartsWith("play") && int.TryParse(action.Substring(4), out int lvl)) { flow.PlayLevel(lvl - 1); return; }
 
@@ -102,6 +109,42 @@ namespace PuzzleStudio.Game.Bootstrap
                     mode.ForceSolve();
                     break;
             }
+        }
+
+        static Gamepad _virtualPad;
+
+        /// <summary>Presses and releases one button of a virtual gamepad (tests the real gamepad path end to end).</summary>
+        static IEnumerator PressPad(string name)
+        {
+            if (_virtualPad == null)
+            {
+                _virtualPad = InputSystem.AddDevice<Gamepad>("DebugGamepad");
+                // Captures must not flip back to "mouse" when the real mouse moves meanwhile.
+                PuzzleStudio.Game.UI.InputModeTracker.Forced = PuzzleStudio.Game.UI.InputMode.Gamepad;
+                PuzzleStudio.Game.UI.InputModeTracker.Notify();
+            }
+            GamepadButton button;
+            switch (name)
+            {
+                case "a": button = GamepadButton.South; break;
+                case "b": button = GamepadButton.East; break;
+                case "x": button = GamepadButton.West; break;
+                case "y": button = GamepadButton.North; break;
+                case "lb": button = GamepadButton.LeftShoulder; break;
+                case "rb": button = GamepadButton.RightShoulder; break;
+                case "start": button = GamepadButton.Start; break;
+                case "select": button = GamepadButton.Select; break;
+                case "up": button = GamepadButton.DpadUp; break;
+                case "down": button = GamepadButton.DpadDown; break;
+                case "left": button = GamepadButton.DpadLeft; break;
+                default: button = GamepadButton.DpadRight; break;
+            }
+            InputSystem.QueueStateEvent(_virtualPad, new GamepadState().WithButton(button));
+            yield return null;
+            yield return null;
+            InputSystem.QueueStateEvent(_virtualPad, new GamepadState());
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.15f);
         }
 
         static void SolveCells(IPuzzleMode mode, int count)

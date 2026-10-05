@@ -155,6 +155,23 @@ Dans `Assets/_Project/Studio/Themes/ThemePresets.cs` :
   synthèse dans `Assets/Editor/BuildTools/DefaultAudioGenerator.cs` puis menu **Build > Generate Default Audio**
   (les musiques `calm_01..03` sont décrites par une suite d'accords, un tempo et une gamme).
 
+## Manette, Steam Deck et accessibilité
+
+- **Manette** : tout le jeu se joue sans souris. Un **curseur** (contour qui pulse) se déplace sur le plateau ;
+  les menus ont un contour autour du bouton choisi. Les touches sont dans `InputController.cs` (plateau) et
+  `GameFlow.HandleBackInput` (B / Menu) ; les menus passent par l'EventSystem d'Unity (`InputSystemUIInputModule`).
+- **Repères de boutons** : `PromptElement.Attach(bouton, PadButton.X, "H")` ajoute « X » (manette) et « H » (clavier)
+  devant un bouton ; ils n'apparaissent que si cet appareil est utilisé (`InputModeTracker`).
+- **Aide par mode** : `mode.<Id>.help.pad` et `mode.<Id>.help.keys` dans `en.json` / `fr.json` (sinon `mode.<Id>.help`).
+- **Vibrations** : `Rumble.Play(faible, fort, secondes)` ; réglage *Controller vibration*.
+- **Accessibilité (Settings)** : taille de l'interface, surlignage pour daltoniens, réduire les animations,
+  masquer le chrono, police simple et lisible (Inter), vibrations, écran **Controls**.
+- **Steam Deck** : au premier lancement sur un Deck, l'interface passe à 115 % (`DeckDefaults`). Pour vérifier le rendu
+  en 1280 × 800, choisis « 1280 × 800 (Steam Deck) » dans l'aperçu du Studio, et le bouton **Gamepad** de la barre
+  d'aperçu montre le jeu comme un joueur à la manette.
+- **Dans Steamworks** (*Steam Deck compatibility*), tu peux déclarer : contrôle complet à la manette, repères de boutons
+  Xbox, pas de saisie de texte, pas de launcher, 1280 × 800 supporté. La vérification « Deck Verified » est faite par Valve.
+
 ## Ajouter une règle de succès
 
 1. Ajoute la valeur à `AchievementRule` (`Assets/_Project/Core/Data/Enums.cs`).

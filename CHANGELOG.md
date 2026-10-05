@@ -1,5 +1,33 @@
 # Changelog
 
+## [Jalon 9] Manette, Steam Deck et accessibilité — 2026-10-04
+
+### Ajouté
+- **Jeu complet à la manette et au clavier** : curseur sur le plateau (croix / stick / flèches / ZQSD), A / Entrée pour
+  prendre-poser-tourner, RB / Q pour tourner dans l'autre sens, X / H indice, Y / Espace aperçu, LB / Ctrl+Z annuler,
+  View / R recommencer, B / Échap annuler ou pause, Menu pause. Répétition quand on maintient une direction.
+  Au taquin, la croix pousse les tuiles dans le trou. Un indice déplace le curseur sur la pièce à bouger.
+- **Menus à la manette** : EventSystem + Input System (croix, stick, A, B), contour autour de l'élément choisi,
+  barre « A Choisir · B Retour », les listes défilent avec le focus. Dans les réglages, Haut / Bas passent d'une ligne
+  à l'autre (y compris depuis les curseurs de volume) et sautent les lignes grisées.
+- **Repères de boutons** : A / X / Y / LB / View sur les boutons du jeu avec une manette, H / R / Espace… au clavier ;
+  l'affichage suit l'appareil utilisé en dernier. Aide du niveau adaptée à la manette ou au clavier.
+- **Vibrations** (pièce bien placée, victoire, coup impossible), désactivables.
+- **Écran Controls** (Settings) : toutes les commandes souris / clavier / manette.
+- **Accessibilité** : masquer le chrono, police simple et lisible, vibrations (en plus de la taille de l'interface,
+  du mode daltonien et de « réduire les animations »).
+- **Steam Deck** : interface à 115 % au premier lancement sur un Deck ; vérifié en 1280 × 800 ; section Steam Deck dans
+  le README Steamworks.
+- **Confirmation** avant de quitter le jeu ; les confirmations sélectionnent « Annuler » par défaut.
+- Studio : bouton **Gamepad** dans la barre d'aperçu (voir le jeu comme un joueur à la manette).
+- Notifications de succès groupées (« 5 SUCCÈS DÉBLOQUÉS » au lieu de 5 bandeaux).
+- Tests : +5 EditMode (curseur, répétition, Steam Deck, anciens réglages) et +2 PlayMode joués avec une
+  **manette virtuelle** (un niveau d'échange résolu entièrement à la manette ; taquin, annuler, indice, pause).
+- Outil de capture : actions `pad:a`, `pad:right`… (manette virtuelle), `controls`.
+
+### Corrigé
+- Le A / Entrée qui lance un niveau (Jouer, Niveau suivant, Reprendre) n'agit plus aussi sur le plateau.
+
 ## [Jalon 8] Steam — 2026-10-04
 
 ### Ajouté

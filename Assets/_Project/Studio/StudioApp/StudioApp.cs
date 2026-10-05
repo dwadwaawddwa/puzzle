@@ -8,6 +8,7 @@ using PuzzleStudio.Core.Pack;
 using PuzzleStudio.Core.Puzzle;
 using PuzzleStudio.Core.Util;
 using PuzzleStudio.Core.Util.Win32;
+using PuzzleStudio.Game.UI;
 using PuzzleStudio.Studio.Export;
 using PuzzleStudio.Studio.Panels;
 using PuzzleStudio.Studio.Preview;
@@ -92,6 +93,13 @@ namespace PuzzleStudio.Studio.App
         }
 
         public void DebugScrollInspector(float y) => _scroll.scrollOffset = new Vector2(0, y);
+
+        /// <summary>Preview as a gamepad player (no gamepad needed).</summary>
+        public void DebugGamepadView(bool on)
+        {
+            InputModeTracker.Forced = on ? InputMode.Gamepad : (InputMode?)null;
+            InputModeTracker.Notify();
+        }
 
         public void DebugLayout(string screen, string select)
         {
@@ -293,6 +301,13 @@ namespace PuzzleStudio.Studio.App
                 sound.text = _preview.Muted ? "Sound: off" : "Sound: on";
             }, "studio-btn--small"), "Play the game music and sounds in the preview");
             bar.Add(sound);
+            Button pad = null;
+            pad = Tip(Fields.Button("Gamepad: off", () =>
+            {
+                DebugGamepadView(InputModeTracker.Forced != InputMode.Gamepad);
+                pad.text = InputModeTracker.Forced == InputMode.Gamepad ? "Gamepad: on" : "Gamepad: off";
+            }, "studio-btn--small"), "See the game as a gamepad player (button prompts, board cursor, focus ring)");
+            bar.Add(pad);
             bar.Add(Tip(Fields.Button("Reshuffle", () => _preview.Restart(), "studio-btn--small"), "Restart the preview (new shuffle)"));
             return bar;
         }

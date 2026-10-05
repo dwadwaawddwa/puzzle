@@ -91,6 +91,9 @@ namespace PuzzleStudio.Game.Bootstrap
                 : DebugCapture.HasFlag("-noSteam") ? new NullSteamService("-noSteam")
                 : SteamBootstrap.Create(pack);
 
+            // First launch on a Steam Deck: larger interface for the 7" screen.
+            if (!preview && DeckDefaults.Apply(save.Settings, ServiceHub.Steam.IsSteamDeck)) save.SaveSettings();
+
             string steamLang = ServiceHub.Steam.LanguageCode;
             string lang = save.Settings.language
                           ?? (steamLang != null && HasLanguage(pack, steamLang) ? steamLang : null)

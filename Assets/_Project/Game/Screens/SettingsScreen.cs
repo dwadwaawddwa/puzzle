@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PuzzleStudio.Core.Save;
 using PuzzleStudio.Game.Bootstrap;
+using PuzzleStudio.Game.Gameplay;
 using PuzzleStudio.Game.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,6 +16,8 @@ namespace PuzzleStudio.Game.Screens
         readonly VisualElement _content;
         readonly Button _back;
         VisualElement _firstControl;
+        /// <summary>Focusable controls from top to bottom (gamepad / keyboard Up and Down).</summary>
+        readonly List<VisualElement> _order = new List<VisualElement>();
         public bool AsOverlay { get; set; }
 
         public SettingsScreen(GameFlow flow) : base(flow)
@@ -28,6 +31,25 @@ namespace PuzzleStudio.Game.Screens
             scroll.Add(_content);
             Root.Add(scroll);
             Root.styleSheets.Add(Resources.Load<StyleSheet>("UI/Game"));
+            Root.RegisterCallback<NavigationMoveEvent>(OnNavigate, TrickleDown.TrickleDown);
+        }
+
+        /// <summary>
+        /// Up / Down go through the rows in order (sliders would otherwise keep the focus, and the spatial search
+        /// can skip rows); Left / Right still change the value of the focused control.
+        /// </summary>
+        void OnNavigate(NavigationMoveEvent e)
+        {
+            int step = e.direction == NavigationMoveEvent.Direction.Down ? 1 : e.direction == NavigationMoveEvent.Direction.Up ? -1 : 0;
+            if (step == 0) return;
+            int i = -1;
+            for (var el = Root.focusController?.focusedElement as VisualElement; el != null && i < 0; el = el.parent) i = _order.IndexOf(el);
+            if (i < 0) return;
+            int next = i + step;
+            while (next >= 0 && next < _order.Count && !_order[next].enabledInHierarchy) next += step;
+            if (next >= 0 && next < _order.Count) _order[next].Focus();
+            e.StopPropagation();
+            Root.focusController?.IgnoreEvent(e);
         }
 
         public override VisualElement DefaultFocus => _firstControl ?? _back;
@@ -48,6 +70,8 @@ namespace PuzzleStudio.Game.Screens
             Root.style.backgroundColor = AsOverlay ? Flow.Theme.Palette.Background : new Color(0, 0, 0, 0);
             _content.Clear();
             _firstControl = null;
+            _order.Clear();
+            _order.Add(_back);
             var loc = Flow.Loc;
             var s = Flow.Save.Settings;
             var pack = Flow.Pack;
@@ -116,6 +140,17 @@ namespace PuzzleStudio.Game.Screens
             }
             AddToggle(loc.T("settings.colorblind"), s.colorblindMode, v => { s.colorblindMode = v; Flow.Theme.ColorblindMode = v; });
             AddToggle(loc.T("settings.reduceMotion"), s.reduceMotion, v => { s.reduceMotion = v; UiAnim.ReduceMotion = v; Flow.ReduceMotionChanged(); });
+            AddToggle(loc.T("settings.showTimer"), s.showTimer, Flow.SetShowTimer);
+            AddToggle(loc.T("settings.readableFont"), s.readableFont, Flow.SetReadableFont);
+            AddToggle(loc.T("settings.vibration"), s.vibration, v =>
+            {
+                s.vibration = v;
+                Rumble.Enabled = v;
+                if (v) Rumble.Play(0.3f, 0.5f, 0.15f);
+            });
+            var controls = Pz.MakeButton(loc.T("settings.controlsView"), Pz.Ghost, Flow.ShowControls);
+            controls.AddToClassList("pz-button--small");
+            AddRow(loc.T("settings.controls"), controls);
 
             // ---- progress
             AddSection(loc.T("settings.progress"));
@@ -140,7 +175,11 @@ namespace PuzzleStudio.Game.Screens
             var row = Pz.MakeBox("pz-setting-row", Pz.MakeLabel(label, $"pz-setting-label {Pz.Text}"), control);
             control.AddToClassList("pz-setting-control");
             _content.Add(row);
-            if (_firstControl == null && control.focusable) _firstControl = control;
+            if (control.focusable)
+            {
+                _order.Add(control);
+                if (_firstControl == null) _firstControl = control;
+            }
             return row;
         }
 
@@ -157,6 +196,7 @@ namespace PuzzleStudio.Game.Screens
             if (playSample) slider.RegisterCallback<PointerUpEvent>(_ => Flow.Audio?.PlaySfx("snap"), TrickleDown.TrickleDown);
             var box = Pz.MakeBox("pz-slider-box", slider, pct);
             AddRow(label, box);
+            _order.Add(slider);
             if (_firstControl == null) _firstControl = slider;
         }
 

@@ -4,7 +4,8 @@
     "references": [
         "PuzzleCore",
         "PuzzleGame",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

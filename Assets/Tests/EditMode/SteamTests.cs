@@ -165,6 +165,7 @@ namespace PuzzleStudio.Tests
             public string Status => "fake";
             public string LanguageCode => "fr";
             public bool OverlayEnabled => false;
+            public bool IsSteamDeck => false;
             public event System.Action<bool> OverlayToggled { add { } remove { } }
             public void UnlockAchievement(string id) => Unlocked.Add(id);
             public void SetPresence(string token, int level, int total, string statusText) { }

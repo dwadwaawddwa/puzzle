@@ -16,6 +16,8 @@ namespace PuzzleStudio.Core.Steam
         string LanguageCode { get; }
         /// <summary>The Steam overlay can show its own "achievement unlocked" popup.</summary>
         bool OverlayEnabled { get; }
+        /// <summary>Running on a Steam Deck (also known without an App ID: Steam sets SteamDeck=1).</summary>
+        bool IsSteamDeck { get; }
         /// <summary>Raised when the Steam overlay opens (true) or closes (false).</summary>
         event Action<bool> OverlayToggled;
 
@@ -36,7 +38,11 @@ namespace PuzzleStudio.Core.Steam
         public string Status { get; }
         public string LanguageCode => null;
         public bool OverlayEnabled => false;
+        public bool IsSteamDeck => DeckEnvironment;
         public event Action<bool> OverlayToggled { add { } remove { } }
+
+        /// <summary>Steam launches games on the Deck with the environment variable SteamDeck=1.</summary>
+        public static bool DeckEnvironment => Environment.GetEnvironmentVariable("SteamDeck") == "1";
 
         public void UnlockAchievement(string id) { }
         public void SetPresence(string token, int level, int total, string statusText) { }

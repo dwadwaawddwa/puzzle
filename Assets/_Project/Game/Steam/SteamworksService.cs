@@ -18,6 +18,7 @@ namespace PuzzleStudio.Game.Steam
         public string Status { get; private set; }
         public string LanguageCode { get; private set; }
         public bool OverlayEnabled => _initialized && SteamUtils.IsOverlayEnabled();
+        public bool IsSteamDeck => (_initialized && SteamUtils.IsSteamRunningOnSteamDeck()) || NullSteamService.DeckEnvironment;
         public event Action<bool> OverlayToggled;
 
         /// <summary>Returns a working service, or a <see cref="NullSteamService"/> explaining why Steam is off.</summary>

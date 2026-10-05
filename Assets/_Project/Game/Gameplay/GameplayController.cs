@@ -37,6 +37,10 @@ namespace PuzzleStudio.Game.Gameplay
         public GameSession Session => _session;
         public int LevelIndex => _levelIndex;
         public bool IsPlaying => _session != null;
+        /// <summary>Gamepad / keyboard cursor cell (-1 = hidden).</summary>
+        public int CursorCell => _board.CursorVisible ? _board.CursorCell : -1;
+
+        bool Slides => _mode != null && _mode.DragStyle == DragStyle.Slide;
 
         public void Init(GameFlow flow, Camera cam, GameViewport viewport)
         {
@@ -64,6 +68,7 @@ namespace PuzzleStudio.Game.Gameplay
             _input.InputEnabled = false;
             _input.CanPick = cell => _mode != null && _mode.CanPick(cell);
             _input.AllowFreeDrag = () => _mode == null || _mode.DragStyle == DragStyle.Swap || _mode.DragStyle == DragStyle.Insert;
+            _input.DirectionSlides = () => Slides;
             _input.OnDirection += (dx, dy) =>
             {
                 if (_mode != null && _mode.DragStyle == DragStyle.Slide) Submit(PuzzleInput.Direction(dx, dy));
@@ -76,6 +81,16 @@ namespace PuzzleStudio.Game.Gameplay
             _input.OnHint += RequestHint;
             _input.OnRestart += Restart;
             _input.OnPreview += SetPreview;
+            InputModeTracker.Changed += OnInputModeChanged;
+        }
+
+        /// <summary>The cursor is shown while a gamepad or the keyboard is used, hidden with the mouse.</summary>
+        void OnInputModeChanged(InputMode mode)
+        {
+            if (_session == null || !_session.IsRunning) return;
+            if (mode == InputMode.Pointer || Slides) _board.HideCursor();
+            else _board.ShowCursor(_board.HoverCell);
+            RefreshHud();
         }
 
         /// <summary>Connects (or reconnects, after a language change) the HUD screen.</summary>
@@ -83,8 +98,7 @@ namespace PuzzleStudio.Game.Gameplay
         {
             _screen = screen;
             _input.UiRoot = screen.Root;
-            var g = _pack.gameplay;
-            screen.ConfigureFeatures(g.showMoves, g.showTimer, g.allowUndo, g.allowHints, g.allowPreview);
+            RefreshFeatures();
             screen.OnUndo += Undo;
             screen.OnHint += RequestHint;
             screen.OnRestart += Restart;
@@ -94,6 +108,14 @@ namespace PuzzleStudio.Game.Gameplay
             screen.OnLevels += () => _flow.ShowLevels();
             screen.OnPreview += SetPreview;
             if (_session != null) RefreshHud();
+        }
+
+        /// <summary>HUD elements of the pack, minus the timer when the player hid it (accessibility).</summary>
+        public void RefreshFeatures()
+        {
+            if (_screen == null) return;
+            var g = _pack.gameplay;
+            _screen.ConfigureFeatures(g.showMoves, g.showTimer && _save.Settings.showTimer, g.allowUndo, g.allowHints, g.allowPreview);
         }
 
         public void Restart()
@@ -128,6 +150,7 @@ namespace PuzzleStudio.Game.Gameplay
 
             _board.gameObject.SetActive(true);
             _board.Build(_mode, tex, _pack.theme.pieces);
+            if (InputModeTracker.UsesNavigation && _mode.DragStyle != DragStyle.Slide) _board.ShowCursor();
             if (_texture != null && _texture != tex && _texture != Texture2D.grayTexture) Destroy(_texture);
             _texture = tex;
 
@@ -204,10 +227,19 @@ namespace PuzzleStudio.Game.Gameplay
         {
             if (_screen == null || _session == null) return;
             _screen.SetLevel(_levelIndex, _pack.levels.Count, LevelName(_levelIndex));
-            _screen.SetInstructions(_flow.Loc.T("mode." + _mode.Id + ".help"));
+            _screen.SetInstructions(HelpText());
             _screen.SetMoves(_session.Moves);
             _screen.SetHintsLeft(_pack.gameplay.maxHintsPerLevel - _session.HintsUsed);
             _screen.SetUndoAvailable(_mode.CanUndo && _session.IsRunning);
+        }
+
+        /// <summary>How-to-play text for the device in use ("mode.SwapTiles.help.pad"…), falling back to the mouse text.</summary>
+        string HelpText()
+        {
+            string key = "mode." + _mode.Id + ".help";
+            var mode = InputModeTracker.Current;
+            string variant = mode == InputMode.Gamepad ? key + ".pad" : mode == InputMode.Keyboard ? key + ".keys" : null;
+            return variant != null && _flow.Loc.Has(variant) ? _flow.Loc.T(variant) : _flow.Loc.T(key);
         }
 
         void Update()
@@ -236,6 +268,8 @@ namespace PuzzleStudio.Game.Gameplay
 
         void OnDestroy()
         {
+            InputModeTracker.Changed -= OnInputModeChanged;
+            Rumble.Stop();
             if (_texture != null && _texture != Texture2D.grayTexture) Destroy(_texture);
         }
 
@@ -256,6 +290,7 @@ namespace PuzzleStudio.Game.Gameplay
                     break;
                 case MoveResult.Blocked:
                     _flow.Audio.PlaySfx("locked", 1f, 0.6f);
+                    Rumble.Play(0.25f, 0f, 0.06f);
                     _board.RefreshHighlights();
                     break;
             }
@@ -282,6 +317,8 @@ namespace PuzzleStudio.Game.Gameplay
             if (!hint.IsValid) return;
             _session.CountHint();
             _board.ShowHint(hint);
+            // With a gamepad the cursor jumps to the piece to move.
+            if (_board.CursorVisible && hint.FromCell >= 0 && !Slides) _board.ShowCursor(hint.FromCell);
             _flow.Audio.PlaySfx("hint");
             _screen.SetHintsLeft(_pack.gameplay.maxHintsPerLevel - _session.HintsUsed);
         }
@@ -318,12 +355,14 @@ namespace PuzzleStudio.Game.Gameplay
             _lastSnapFrame = Time.frameCount;
             _correctStreak++;
             _flow.Audio.PlaySfx("snap", 1f + Mathf.Min(_correctStreak, 8) * 0.03f);
+            Rumble.Play(0.1f, 0.25f, 0.07f);
         }
 
         void HandleSolved()
         {
             _session.Finish();
             _input.InputEnabled = false;
+            _board.HideCursor();
             _board.SetPreview(false);
             _screen.SetUndoAvailable(false);
 
@@ -354,6 +393,7 @@ namespace PuzzleStudio.Game.Gameplay
             yield return new WaitForSecondsRealtime(BoardView.MoveDuration + 0.1f);
             _board.PlayVictory();
             _flow.Audio.PlaySfx("victory");
+            Rumble.Play(0.35f, 0.6f, 0.35f);
             StartCoroutine(VictoryParticles());
             yield return new WaitForSecondsRealtime(UiAnim.ReduceMotion ? 0.3f : 1.0f);
             var r = _save.Progress.Get(_pack.levels[_levelIndex].id);

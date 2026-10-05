@@ -24,7 +24,7 @@ namespace PuzzleStudio.Game.Screens
         readonly VisualElement _victory, _victoryCard;
         readonly Label _victoryMoves, _victoryTime, _victoryRecord, _victoryBest;
         readonly StarElement[] _stars = new StarElement[3];
-        readonly Button _victoryNext, _victoryLevels;
+        readonly Button _victoryNext, _victoryLevels, _victoryReplay;
         readonly Label _victoryNextLabel;
 
         int _shownSeconds = -1;
@@ -50,6 +50,7 @@ namespace PuzzleStudio.Game.Screens
             _timePill = Pz.MakeBox($"{Pz.Pill} {Pz.Surface}", Pz.MakeLabel(loc.T("hud.time"), $"pz-pill-label {Pz.TextMuted}"), _timeValue);
             _pauseBtn = Pz.MakeIconButton(Icon.Pause, null, Pz.Ghost, () => OnPause?.Invoke());
             _pauseBtn.tooltip = loc.T("button.pause");
+            _pauseBtn.focusable = false;
             var stats = LayoutService.Tag(Pz.MakeBox("pz-stats", _movesPill, _timePill, _pauseBtn), "stats");
             Root.Add(titleBlock);
             Root.Add(stats);
@@ -61,6 +62,12 @@ namespace PuzzleStudio.Game.Screens
             _hintCount = Pz.MakeLabel("", "pz-badge");
             _hintHost = Pz.MakeBox("pz-badge-host", _hintBtn, _hintCount);
             _previewBtn = BuildHoldButton(loc.T("button.preview"));
+            // HUD buttons are never focused: the gamepad uses its own buttons (shown as prompts) and moves the board cursor.
+            foreach (var b in new[] { _restartBtn, _undoBtn, _hintBtn }) b.focusable = false;
+            PromptElement.Attach(_restartBtn, PadButton.View, "R");
+            PromptElement.Attach(_undoBtn, PadButton.LB, loc.T("key.backspace"));
+            PromptElement.Attach(_hintBtn, PadButton.X, "H");
+            PromptElement.Attach(_previewBtn, PadButton.Y, loc.T("key.space"));
             Root.Add(LayoutService.Tag(Pz.MakeBox("pz-actions", _restartBtn, _undoBtn, _hintHost, _previewBtn), "actions"));
             Root.Add(_tipRow);
             var decorLeft = flow.BuildDecor(flow.Pack.theme.background.decorLeft, "decorLeft");
@@ -79,10 +86,11 @@ namespace PuzzleStudio.Game.Screens
             var statsRow = Pz.MakeBox("pz-card-stats", _victoryMoves, _victoryTime);
             _victoryLevels = Pz.MakeIconButton(Icon.Grid, null, Pz.Ghost, () => OnLevels?.Invoke());
             _victoryLevels.tooltip = loc.T("menu.levels");
-            var replay = Pz.MakeIconButton(Icon.Restart, loc.T("victory.replay"), Pz.Ghost, () => OnReplay?.Invoke());
+            _victoryReplay = Pz.MakeIconButton(Icon.Restart, loc.T("victory.replay"), Pz.Ghost, () => OnReplay?.Invoke());
             _victoryNext = Pz.MakeIconButton(Icon.Next, loc.T("victory.next"), Pz.Primary, () => OnNext?.Invoke(), iconAfter: true);
-            _victoryNextLabel = _victoryNext.Q<Label>();
-            var buttons = Pz.MakeBox("pz-card-buttons", _victoryLevels, replay, _victoryNext);
+            _victoryNextLabel = _victoryNext.Q<Label>(className: "pz-button-label");
+            PromptElement.Attach(_victoryNext, PadButton.A, loc.T("key.enter"));
+            var buttons = Pz.MakeBox("pz-card-buttons", _victoryLevels, _victoryReplay, _victoryNext);
             _victoryCard = Pz.MakeBox($"{Pz.Card} {Pz.Surface} {Pz.Blocking}", title, starsRow, statsRow, _victoryBest, _victoryRecord, buttons);
             _victory = Pz.MakeBox($"pz-overlay {Pz.Blocking}", _victoryCard);
             Pz.SetVisible(_victory, false);
@@ -218,7 +226,7 @@ namespace PuzzleStudio.Game.Screens
                 }
             }
             if (newRecord) UiAnim.Pop(_victoryRecord, 0.4f, 0.35f + 3 * 0.28f);
-            _victoryCard.schedule.Execute(() => _victoryNext.Focus()).ExecuteLater(400);
+            _victoryCard.schedule.Execute(() => { if (nextKind != 2) _victoryNext.Focus(); else _victoryReplay.Focus(); }).ExecuteLater(400);
         }
 
         public void HideVictory()

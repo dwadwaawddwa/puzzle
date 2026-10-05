@@ -2,6 +2,8 @@ using PuzzleStudio.Core.Audio;
 using PuzzleStudio.Game.Screens;
 using PuzzleStudio.Game.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UIElements;
 
 namespace PuzzleStudio.Game.Bootstrap
@@ -53,6 +55,7 @@ namespace PuzzleStudio.Game.Bootstrap
 
             if (_host == null)
             {
+                EnsureEventSystem();
                 GameBootstrap.EnsureInitialized();
                 if (ServiceHub.Save != null) SettingsApplier.ApplyFrameRate(ServiceHub.Save.Settings);
             }
@@ -105,6 +108,17 @@ namespace PuzzleStudio.Game.Bootstrap
         void OnApplicationQuit()
         {
             if (_host == null) ServiceHub.Steam?.Shutdown();
+        }
+
+        /// <summary>
+        /// UI Toolkit menus driven by the Input System (D-pad / stick / arrows move the focus, A / Enter press, B / Esc cancel).
+        /// The module creates its default actions itself.
+        /// </summary>
+        static void EnsureEventSystem()
+        {
+            if (EventSystem.current != null || Object.FindAnyObjectByType<EventSystem>() != null) return;
+            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            Object.DontDestroyOnLoad(go);
         }
 
         void OnDestroy()

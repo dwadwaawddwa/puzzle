@@ -69,17 +69,21 @@ play_sample.bat MinimalWhite
    En éditeur, le jeu charge automatiquement `SamplePacks/CozyPastel`.
 
 ### Commandes du jeu
-| Action | Souris / tactile | Clavier |
-|---|---|---|
-| Échanger deux tuiles (Swap) | clic sur une tuile puis sur une autre, **ou** glisser une tuile sur une autre | — |
-| Déplacer une bande (Strips) | glisser la bande (les autres se décalent) ou clic-clic | — |
-| Taquin (Sliding) | clic sur une tuile alignée avec le trou | **flèches** |
-| Rotation (Rotate) | clic gauche = horaire, clic droit = inverse | — |
-| Aperçu de l'image | maintenir **Preview** | maintenir **Espace** |
-| Indice | **Hint** | **H** |
-| Annuler | **Undo** | **Ctrl+Z** ou **Retour arrière** |
-| Recommencer | **Restart** | **R** |
-| Désélectionner / Pause | — | **Échap** (manette : B / Start) |
+| Action | Souris / tactile | Clavier | Manette (Steam Deck) |
+|---|---|---|---|
+| Déplacer le curseur | — | **flèches** / ZQSD (WASD) | **croix** / stick gauche |
+| Prendre / poser (Swap, Strips), tourner (Rotate) | clic, ou glisser | **Entrée** | **A** |
+| Tourner dans l'autre sens (Rotate) | clic droit | **Q** | **RB** |
+| Taquin (Sliding) | clic sur une tuile alignée avec le trou | **flèches** | **croix** / stick |
+| Aperçu de l'image | maintenir **Preview** | maintenir **Espace** | maintenir **Y** |
+| Indice | **Hint** | **H** | **X** |
+| Annuler | **Undo** | **Ctrl+Z** ou **Retour arrière** | **LB** |
+| Recommencer | **Restart** | **R** | **View** |
+| Désélectionner / Pause | — | **Échap** | **B** / **Menu** |
+
+Les menus se pilotent entièrement à la manette ou au clavier (contour autour de l'élément choisi,
+barre « A Choisir · B Retour »). Les boutons affichent leur touche (A, X, LB… ou H, R…) selon l'appareil utilisé
+en dernier ; un mouvement de souris remet l'affichage souris. L'écran **Settings → Controls** liste tout.
 
 ---
 
@@ -99,7 +103,7 @@ build.bat all        → samples + test + template + studio
 Équivalents dans l'éditeur : menu **Build > Player Template**, **Build > Studio**, **Build > All**, **Build > Generate Sample Packs**, **Build > Setup > Regenerate Project Assets**.
 
 Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzleproj>" -capture a.png;b.png -captureSteps levels;theme -captureQuit`
-(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `storeart`, `screenshots`, `scroll:800`, `exportrun`).
+(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `storeart`, `screenshots`, `scroll:800`, `pad`, `exportrun`).
 
 ### Arguments du jeu
 | Argument | Effet |
@@ -110,6 +114,7 @@ Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzlepro
 | `-capture a.png;b.png -debugAction none;solve -captureQuit` | outil de dev : captures d'écran automatiques (actions : `none`, `select`, `hint`, `partial`, `solve`, `menu`, `levels`, `settings`, `credits`, `end`, `pause`, `pausesettings`, `achievements`, `play2`…, combinables : `play2+partial`) |
 | `-tempSave` / `-demoProgress` | sauvegarde jetable (et remplie à ~40 %) : utilisé pour les captures de la boutique |
 | `-mute` / `-noSteam` | sans son / sans initialiser Steam |
+| actions `pad:a`, `pad:right`, `pad:start`… | appuie sur un bouton d'une manette virtuelle (tests de la manette sans manette) |
 
 Ordre de recherche du pack : `-pack`, puis `<Jeu>_Data/StreamingAssets/GamePack/`, puis (éditeur seulement) `SamplePacks/CozyPastel`.
 
@@ -125,7 +130,7 @@ Assets/_Project/Studio   outil de création — PuzzleStudio.asmdef : StudioApp 
 Assets/_Project/Shaders  Piece.shader (coins arrondis SDF, bordure, surbrillance)
 Assets/_Project/Resources  polices OFL, en.json, USS, PanelSettings, matériau
 Assets/Editor/BuildTools   setup du projet, génération des SamplePacks, builds
-Assets/Tests             EditMode (149 tests) + PlayMode (2 tests de parcours complet)
+Assets/Tests             EditMode (154 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
 SamplePacks/             CozyPastel, DarkNeon, MinimalWhite
 _Legacy/                 ancien générateur (non compilé, conservé pour référence)
 ```

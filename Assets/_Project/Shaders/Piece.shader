@@ -15,6 +15,7 @@ Shader "PuzzleStudio/Piece"
         _HighlightWidth ("Highlight ring width (world)", Float) = 0.05
         _Tint ("Tint", Color) = (1, 1, 1, 1)
         _Softness ("Edge softness (world, shadows)", Float) = 0
+        _Hollow ("Outline only (board cursor)", Float) = 0
     }
 
     SubShader
@@ -42,6 +43,7 @@ Shader "PuzzleStudio/Piece"
             float _HighlightWidth;
             fixed4 _Tint;
             float _Softness;
+            float _Hollow;
 
             struct appdata
             {
@@ -91,6 +93,10 @@ Shader "PuzzleStudio/Piece"
                 float amount = saturate(_Highlight.a);
                 col.rgb = lerp(col.rgb, col.rgb + (1.0 - col.rgb) * 0.35, amount * 0.45);
                 col.rgb = lerp(col.rgb, _Highlight.rgb, ring * saturate(amount * 1.6));
+
+                // Board cursor: only the border band, in the border color.
+                if (_Hollow > 0.5)
+                    col = fixed4(_BorderColor.rgb, borderMask * _BorderColor.a);
 
                 col.a *= alpha;
                 return col;

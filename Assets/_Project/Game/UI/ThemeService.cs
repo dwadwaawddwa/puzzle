@@ -73,8 +73,22 @@ namespace PuzzleStudio.Game.UI
             Config = config ?? new ThemeConfig();
             ColorOverride = null;
             Palette = ThemePalette.From(Config.colors);
-            HeadingFont = FontLibrary.Get(Config.font.heading, FontRole.Heading);
-            BodyFont = FontLibrary.Get(Config.font.body, FontRole.Body);
+            UpdateFonts();
+        }
+
+        bool _readableFont;
+
+        /// <summary>Accessibility: the plain built-in font (Inter) instead of the theme fonts.</summary>
+        public bool ReadableFont
+        {
+            get => _readableFont;
+            set { _readableFont = value; UpdateFonts(); }
+        }
+
+        void UpdateFonts()
+        {
+            HeadingFont = FontLibrary.Get(_readableFont ? "Default:Clean" : Config.font.heading, FontRole.Heading);
+            BodyFont = FontLibrary.Get(_readableFont ? "Default:Clean" : Config.font.body, FontRole.Body);
         }
 
         public float ButtonRadius(float height)
@@ -131,7 +145,7 @@ namespace PuzzleStudio.Game.UI
                         : e.ClassListContains(Pz.Secondary) ? p.OnSecondary
                         : e.ClassListContains(Pz.Danger) ? Color.white : p.Text;
                 e.Query<IconElement>().ForEach(i => i.Color = c);
-                e.Query<Label>().ForEach(l => l.style.color = c);
+                e.Query<Label>().ForEach(l => { if (!(l is PromptElement)) l.style.color = c; });
             });
 
             // Settings controls

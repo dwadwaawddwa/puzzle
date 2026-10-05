@@ -22,7 +22,7 @@
     transition-timing-function: ease-out-back, linear;
 }
 .pz-button:hover { scale: 1.05 1.05; }
-.pz-button:focus { scale: 1.07 1.07; }
+.pz-nav-pad .pz-button:focus, .pz-nav-keys .pz-button:focus { scale: 1.07 1.07; }
 .pz-button:active { scale: 0.95 0.95; }
 .pz-button:disabled { opacity: 0.4; scale: 1 1; }
 
@@ -203,7 +203,7 @@
     transition-timing-function: ease-out-back, ease-out;
 }
 .pz-level-card:hover { scale: 1.04 1.04; }
-.pz-level-card:focus { scale: 1.06 1.06; translate: 0 -4px; }
+.pz-nav-pad .pz-level-card:focus, .pz-nav-keys .pz-level-card:focus { scale: 1.06 1.06; translate: 0 -4px; }
 .pz-level-thumb {
     height: 196px;
     border-radius: 10px;
@@ -396,3 +396,58 @@
 .pz-toast-icon { width: 30px; height: 30px; }
 .pz-toast-title { font-size: 17px; letter-spacing: 1px; -unity-text-align: middle-left; }
 .pz-toast-text { font-size: 26px; -unity-text-align: middle-left; white-space: normal; }
+
+/* ======================= gamepad / keyboard prompts ======================= */
+.pz-prompt {
+    height: 30px;
+    min-width: 30px;
+    padding: 0 7px;
+    margin-right: 10px;
+    border-radius: 15px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 255, 255);
+    flex-shrink: 0;
+}
+.pz-prompt--pad, .pz-prompt--keys { display: none; }
+.pz-nav-pad .pz-prompt--pad { display: flex; }
+.pz-nav-keys .pz-prompt--keys { display: flex; }
+.pz-prompt--face { width: 30px; padding: 0; }
+.pz-prompt--pill { background-color: rgb(70, 76, 90); border-radius: 8px; font-size: 13px; }
+.pz-prompt--key {
+    background-color: rgb(250, 250, 252);
+    color: rgb(40, 44, 54);
+    border-width: 2px;
+    border-bottom-width: 4px;
+    border-color: rgb(160, 166, 180);
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+.pz-promptbar {
+    position: absolute;
+    right: 40px;
+    bottom: 28px;
+    height: 54px;
+    padding: 0 22px;
+}
+.pz-promptbar-item { flex-direction: row; align-items: center; margin: 0 10px; }
+.pz-promptbar-text { font-size: 20px; }
+
+/* ======================= controls overlay ======================= */
+.pz-controls-card { min-width: 1100px; padding: 40px 56px 36px 56px; }
+.pz-controls-table { margin-top: 10px; }
+.pz-controls-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 52px;
+    border-bottom-width: 1px;
+    border-color: rgba(128, 128, 128, 0.18);
+}
+.pz-controls-cell--action { width: 340px; }
+.pz-controls-cell { width: 230px; }
+.pz-controls-header { font-size: 17px; letter-spacing: 1px; -unity-text-align: middle-left; }
+.pz-controls-action { font-size: 22px; -unity-text-align: middle-left; white-space: normal; }
+.pz-controls-text { font-size: 20px; -unity-text-align: middle-left; white-space: normal; }
+.pz-controls-pads { flex-direction: row; align-items: center; }

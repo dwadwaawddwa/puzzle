@@ -39,6 +39,13 @@ namespace PuzzleStudio.Game.Gameplay
         const float HintDuration = 2.4f;
 
         float _previewAlpha, _previewTarget;
+
+        // Gamepad / keyboard cursor (an outline drawn above the pieces).
+        GameObject _cursor;
+        MaterialPropertyBlock _cursorMpb;
+        int _cursorCell = -1;
+        bool _cursorVisible;
+        Vector3 _cursorPos;
         float _seamT = 0f, _seamTarget = 0f;   // 0 = normal pieces, 1 = seamless full image (victory)
         float _zoomT = 1f;                      // victory zoom of the finished picture
 
@@ -49,6 +56,9 @@ namespace PuzzleStudio.Game.Gameplay
         public System.Func<Rect> Area;
         public bool IsDragging => _dragCell >= 0;
         public int DragCell => _dragCell;
+        public int CursorCell => _cursorCell;
+        public bool CursorVisible => _cursorVisible;
+        public int HoverCell => _hoverCell;
 
         public void Init(Camera cam, ThemeService theme)
         {
@@ -66,6 +76,8 @@ namespace PuzzleStudio.Game.Gameplay
             _style = style ?? new PieceStyle();
             _hint = Hint.None;
             _hoverCell = _dropCell = _dragCell = -1;
+            _cursorCell = -1;
+            HideCursor();
             _seamT = _seamTarget = 0f;
             _previewAlpha = _previewTarget = 0f;
             _zoomT = 1f;
@@ -102,6 +114,7 @@ namespace PuzzleStudio.Game.Gameplay
         {
             foreach (var v in _pool) v.gameObject.SetActive(false);
             if (_preview != null) _preview.gameObject.SetActive(false);
+            HideCursor();
             _views = System.Array.Empty<PieceView>();
             _mode = null;
         }
@@ -198,6 +211,7 @@ namespace PuzzleStudio.Game.Gameplay
         /// <summary>Victory: gaps, borders and corners fade out so the full picture appears, then a small zoom.</summary>
         public void PlayVictory()
         {
+            HideCursor();
             _seamTarget = 1f;
             _zoomT = 0f;
         }
@@ -223,6 +237,72 @@ namespace PuzzleStudio.Game.Gameplay
             if (cell == _hoverCell) return;
             _hoverCell = cell;
             RefreshHighlights();
+        }
+
+        // ------------------------------------------------------------------ gamepad / keyboard cursor
+
+        /// <summary>Shows the cursor on <paramref name="cell"/> (-1 = keep its cell, or the center of the board).</summary>
+        public void ShowCursor(int cell = -1)
+        {
+            if (_mode == null) return;
+            var layout = _mode.Layout;
+            if (cell >= 0 && cell < layout.CellCount) _cursorCell = cell;
+            else if (_cursorCell < 0 || _cursorCell >= layout.CellCount) _cursorCell = GridCursor.Center(layout);
+            if (_cursor == null) CreateCursor();
+            if (!_cursorVisible) _cursorPos = CellCenter(_cursorCell);
+            _cursorVisible = true;
+            _cursor.SetActive(true);
+            SetHover(_cursorCell);
+        }
+
+        public void MoveCursor(int dx, int dy)
+        {
+            if (_mode == null) return;
+            if (!_cursorVisible) { ShowCursor(); return; }
+            ShowCursor(GridCursor.Move(_cursorCell, dx, dy, _mode.Layout));
+        }
+
+        public void HideCursor()
+        {
+            _cursorVisible = false;
+            if (_cursor != null) _cursor.SetActive(false);
+        }
+
+        void CreateCursor()
+        {
+            _cursor = new GameObject("Cursor", typeof(MeshFilter), typeof(MeshRenderer));
+            _cursor.transform.SetParent(transform, false);
+            _cursor.GetComponent<MeshFilter>().sharedMesh = _quad;
+            var r = _cursor.GetComponent<MeshRenderer>();
+            r.sharedMaterial = _material;
+            r.sortingOrder = 600;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            _cursorMpb = new MaterialPropertyBlock();
+        }
+
+        void UpdateCursor(float dt)
+        {
+            if (!_cursorVisible || _cursor == null || _mode == null) return;
+            var target = CellCenter(_cursorCell);
+            _cursorPos = Vector3.Lerp(_cursorPos, target, 1f - Mathf.Exp(-dt * 22f));
+            _cursor.transform.localPosition = new Vector3(_cursorPos.x, _cursorPos.y, -0.05f);
+            float margin = 6f * _px;
+            var size = new Vector2(_cell.x + margin, _cell.y + margin);
+            _cursor.transform.localScale = new Vector3(size.x, size.y, 1f);
+            float pulse = UiAnim.ReduceMotion ? 1f : 0.78f + 0.22f * Mathf.Sin(Time.unscaledTime * 6f);
+            var color = _theme.Palette.Text;
+            color.a = pulse;
+            _cursorMpb.SetTexture("_MainTex", Texture2D.whiteTexture);
+            _cursorMpb.SetVector("_UVRect", new Vector4(0, 0, 1, 1));
+            _cursorMpb.SetVector("_Size", new Vector4(size.x, size.y, 0, 0));
+            _cursorMpb.SetFloat("_Radius", _style.cornerRadius * _px + margin * 0.5f);
+            _cursorMpb.SetFloat("_Border", Mathf.Max(4f * _px, 0.035f * Mathf.Min(_cell.x, _cell.y)));
+            _cursorMpb.SetColor("_BorderColor", color);
+            _cursorMpb.SetColor("_Tint", Color.white);
+            _cursorMpb.SetFloat("_Hollow", 1f);
+            _cursorMpb.SetFloat("_Softness", 0f);
+            _cursor.GetComponent<MeshRenderer>().SetPropertyBlock(_cursorMpb);
         }
 
         public void BeginDrag(int cell, Vector3 pointerWorld)
@@ -310,6 +390,7 @@ namespace PuzzleStudio.Game.Gameplay
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
+            UpdateCursor(dt);
 
             if (_hintTime > 0f)
             {

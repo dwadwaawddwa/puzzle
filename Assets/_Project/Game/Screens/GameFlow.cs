@@ -56,7 +56,13 @@ namespace PuzzleStudio.Game.Screens
         EndScreen _end;
         ConfirmScreen _confirm;
         AchievementsScreen _achievements;
+        ControlsScreen _controls;
         VisualElement _toasts;
+        readonly List<AchievementDef> _pendingToasts = new List<AchievementDef>();
+        VisualElement _promptBar;
+        VisualElement _ringed;
+        StyleFloat _ringWidth;
+        StyleColor _ringColor;
         readonly Dictionary<string, Texture2D> _images = new Dictionary<string, Texture2D>();
 
         /// <summary>Raised when the UI scale changes (GameRoot updates the panel settings).</summary>
@@ -76,6 +82,8 @@ namespace PuzzleStudio.Game.Screens
 
             var s = Save.Settings;
             Theme.ColorblindMode = s.colorblindMode;
+            Theme.ReadableFont = s.readableFont;
+            Rumble.Enabled = s.vibration;
             UiAnim.ReduceMotion = s.reduceMotion;
             UiAnim.Speed = Pack.theme.uiStyle.animationSpeed;
             Audio.Init(Pack, s.masterVolume, SettingsApplier.Music(s, Pack), SettingsApplier.Sfx(s, Pack));
@@ -102,6 +110,13 @@ namespace PuzzleStudio.Game.Screens
             Achievements.Unlocked += OnAchievementUnlocked;
             Achievements.SyncOnStart();
             BuildScreens();
+
+            // Gamepad / keyboard: focus ring in menus, button prompts, board cursor.
+            uiRoot.RegisterCallback<FocusInEvent>(OnFocusIn, TrickleDown.TrickleDown);
+            uiRoot.RegisterCallback<FocusOutEvent>(OnFocusOut, TrickleDown.TrickleDown);
+            BuildPromptBar();
+            InputModeTracker.Changed += OnInputModeChanged;
+            OnInputModeChanged(InputModeTracker.Current);
         }
 
         void BuildScreens()
@@ -116,6 +131,7 @@ namespace PuzzleStudio.Game.Screens
             _end = new EndScreen(this);
             _confirm = new ConfirmScreen(this);
             _achievements = new AchievementsScreen(this);
+            _controls = new ControlsScreen(this);
             Gameplay.BindScreen(_gameplayScreen);
         }
 
@@ -164,6 +180,9 @@ namespace PuzzleStudio.Game.Screens
             Presence("#Menu");
         }
 
+        /// <summary>Controls of mouse, keyboard and gamepad (over the current screen).</summary>
+        public void ShowControls() => _router.PushOverlay(_controls);
+
         public void ShowSettings(bool asOverlay)
         {
             _settings.AsOverlay = asOverlay;
@@ -205,9 +224,23 @@ namespace PuzzleStudio.Game.Screens
         void OnAchievementUnlocked(AchievementDef def)
         {
             Debug.Log($"[Puzzle] Achievement unlocked: {def.id}");
-            // With Steam the overlay shows its own popup; otherwise the game shows a toast.
+            // With Steam the overlay shows its own popup; otherwise the game shows a toast (grouped, see FlushToasts).
             if (Steam.IsAvailable && Steam.OverlayEnabled) return;
-            ShowToast(Loc.T("achievements.toast"), Achievements.NameOf(def, Loc));
+            _pendingToasts.Add(def);
+        }
+
+        /// <summary>Several achievements at once (often on the first win): one or two toasts, never a wall of them.</summary>
+        void FlushToasts()
+        {
+            if (_pendingToasts.Count == 0) return;
+            if (_pendingToasts.Count <= 2)
+                foreach (var def in _pendingToasts) ShowToast(Loc.T("achievements.toast"), Achievements.NameOf(def, Loc));
+            else
+            {
+                string names = Achievements.NameOf(_pendingToasts[0], Loc) + ", " + Achievements.NameOf(_pendingToasts[1], Loc) + "…";
+                ShowToast(Loc.T("achievements.toastMany", _pendingToasts.Count), names);
+            }
+            _pendingToasts.Clear();
         }
 
         /// <summary>Small card at the top of the screen for a few seconds (stacks when several arrive).</summary>
@@ -400,6 +433,27 @@ namespace PuzzleStudio.Game.Screens
             Save.SaveSettings();
             Loc = GameBootstrap.LoadLocalization(Pack, code);
             ServiceHub.Loc = Loc;
+            RebuildScreens();
+        }
+
+        /// <summary>Accessibility: the plain built-in font instead of the theme fonts.</summary>
+        public void SetReadableFont(bool on)
+        {
+            Save.Settings.readableFont = on;
+            Save.SaveSettings();
+            Theme.ReadableFont = on;
+            RebuildScreens();
+        }
+
+        public void SetShowTimer(bool on)
+        {
+            Save.Settings.showTimer = on;
+            Gameplay.RefreshFeatures();
+        }
+
+        /// <summary>Texts and fonts are set when screens are built: rebuild them and come back to the settings.</summary>
+        void RebuildScreens()
+        {
             bool overlay = _settings.AsOverlay;
             bool inGame = _router.Page == _gameplayScreen;
             _router.CloseAllOverlays();
@@ -414,6 +468,77 @@ namespace PuzzleStudio.Game.Screens
                 ShowSettings(true);
             }
             else ShowSettings(overlay);
+            if (_promptBar != null)
+            {
+                _promptBar.RemoveFromHierarchy();
+                BuildPromptBar();
+            }
+        }
+
+        // ------------------------------------------------------------------ gamepad / keyboard
+
+        void OnInputModeChanged(InputMode mode)
+        {
+            _uiRoot.EnableInClassList("pz-nav-pad", mode == InputMode.Gamepad);
+            _uiRoot.EnableInClassList("pz-nav-keys", mode == InputMode.Keyboard);
+            var focused = _uiRoot.panel?.focusController?.focusedElement as VisualElement;
+            SetRing(mode == InputMode.Pointer ? null : focused);
+        }
+
+        void OnFocusIn(FocusInEvent e)
+        {
+            var element = e.target as VisualElement;
+            SetRing(InputModeTracker.UsesNavigation ? element : null);
+            // Lists (levels, settings, achievements) follow the focus.
+            for (var p = element?.parent; p != null; p = p.parent)
+                if (p is ScrollView scroll) { scroll.ScrollTo(element); break; }
+        }
+
+        void OnFocusOut(FocusOutEvent e)
+        {
+            if (e.target == _ringed || (e.target is PzToggle t && _ringed != null && _ringed.parent == t)) SetRing(null);
+        }
+
+        /// <summary>Visible focus for gamepad / keyboard players: a ring in the text color around the focused control.</summary>
+        void SetRing(VisualElement element)
+        {
+            if (_ringed != null)
+            {
+                _ringed.style.borderTopWidth = _ringed.style.borderBottomWidth = _ringed.style.borderLeftWidth = _ringed.style.borderRightWidth = _ringWidth;
+                _ringed.style.borderTopColor = _ringed.style.borderBottomColor = _ringed.style.borderLeftColor = _ringed.style.borderRightColor = _ringColor;
+                _ringed = null;
+            }
+            if (element == null || element == _uiRoot) return;
+            // Switches: ring the track, not the whole (wide) control.
+            if (element is PzToggle toggle) element = toggle.Q(className: "pz-toggle__track") ?? element;
+            _ringed = element;
+            _ringWidth = element.style.borderTopWidth;
+            _ringColor = element.style.borderTopColor;
+            element.style.borderTopWidth = element.style.borderBottomWidth = element.style.borderLeftWidth = element.style.borderRightWidth = 4f;
+            element.style.borderTopColor = element.style.borderBottomColor = element.style.borderLeftColor = element.style.borderRightColor = Theme.Palette.Text;
+        }
+
+        /// <summary>"A Select · B Back" (or Enter / Esc) in menus while a gamepad or the keyboard is used.</summary>
+        void BuildPromptBar()
+        {
+            var select = Pz.MakeBox("pz-promptbar-item", PromptElement.Pad(PadButton.A), PromptElement.Key(Loc.T("key.enter")),
+                Pz.MakeLabel(Loc.T("prompt.select"), $"pz-promptbar-text {Pz.Text}"));
+            var back = Pz.MakeBox("pz-promptbar-item", PromptElement.Pad(PadButton.B), PromptElement.Key(Loc.T("key.esc")),
+                Pz.MakeLabel(Loc.T("prompt.back"), $"pz-promptbar-text {Pz.Text}"));
+            _promptBar = Pz.MakeBox($"pz-promptbar {Pz.Pill} {Pz.Surface}", select, back);
+            _promptBar.pickingMode = PickingMode.Ignore;
+            _promptBar.styleSheets.Add(GameSheet);
+            _uiRoot.Add(_promptBar);
+            Theme.Apply(_promptBar);
+        }
+
+        void UpdatePromptBar()
+        {
+            if (_promptBar == null) return;
+            bool inPlay = _router.Page == _gameplayScreen && !_router.HasOverlay && !_gameplayScreen.VictoryVisible;
+            bool show = InputModeTracker.UsesNavigation && !inPlay && _router.Page != _splash;
+            if (show == _promptBar.ClassListContains(Pz.Hidden)) Pz.SetVisible(_promptBar, show);
+            if (show && _promptBar.parent != null && _promptBar.parent.IndexOf(_promptBar) != _promptBar.parent.childCount - 1) _promptBar.BringToFront();
         }
 
         // ------------------------------------------------------------------ helpers for screens
@@ -447,6 +572,10 @@ namespace PuzzleStudio.Game.Screens
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
+            InputModeTracker.Update(Viewport.KeyboardEnabled);
+            Rumble.Tick();
+            UpdatePromptBar();
+            FlushToasts();
             _router?.Tick(dt);
             Thumbs?.Tick();
             HandleBackInput();
@@ -473,12 +602,15 @@ namespace PuzzleStudio.Game.Screens
 
         void OnApplicationFocus(bool focus)
         {
+            if (!focus) Rumble.Stop();
             if (!focus && !IsPreview && _router?.Page == _gameplayScreen) Pause();
         }
 
         void OnDestroy()
         {
             if (Steam != null) Steam.OverlayToggled -= OnSteamOverlay;
+            InputModeTracker.Changed -= OnInputModeChanged;
+            Rumble.Stop();
             Thumbs?.Dispose();
             foreach (var t in _images.Values) if (t != null) Destroy(t);
             _images.Clear();

@@ -62,6 +62,7 @@ namespace PuzzleStudio.Studio.App
                 }
                 else if (step.StartsWith("scroll:") && float.TryParse(step.Substring(7), NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
                     app.DebugScrollInspector(y);
+                else if (step == "pad") app.DebugGamepadView(true);
                 else if (step == "exportrun")
                 {
                     app.StartExport();

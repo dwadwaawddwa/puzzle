@@ -4,7 +4,8 @@
     "references": [
         "PuzzleCore",
         "Unity.InputSystem",
-        "com.rlabrecque.steamworks.net"
+        "com.rlabrecque.steamworks.net",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

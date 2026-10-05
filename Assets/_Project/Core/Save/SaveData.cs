@@ -88,5 +88,28 @@ namespace PuzzleStudio.Core.Save
         public float uiScale = 1f;
         public bool colorblindMode = false;
         public bool reduceMotion = false;
+        /// <summary>Gamepad rumble on snaps and victories.</summary>
+        public bool vibration = true;
+        /// <summary>Replaces the theme fonts with the plainest built-in font (Inter).</summary>
+        public bool readableFont = false;
+        /// <summary>Relaxed play: hide the timer during levels.</summary>
+        public bool showTimer = true;
+        /// <summary>Steam Deck defaults (larger interface) were applied once.</summary>
+        public bool deckDefaultsApplied = false;
+    }
+
+    /// <summary>First launch on a Steam Deck (7" screen, 1280 × 800): a larger interface.</summary>
+    public static class DeckDefaults
+    {
+        public const float UiScale = 1.15f;
+
+        /// <returns>True when the settings were changed (save them).</returns>
+        public static bool Apply(SettingsData s, bool isSteamDeck)
+        {
+            if (!isSteamDeck || s.deckDefaultsApplied) return false;
+            s.deckDefaultsApplied = true;
+            if (Math.Abs(s.uiScale - 1f) < 0.01f) s.uiScale = UiScale;
+            return true;
+        }
     }
 }

@@ -1,5 +1,7 @@
 using System;
+using PuzzleStudio.Core.Util;
 using PuzzleStudio.Game.Bootstrap;
+using PuzzleStudio.Game.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -7,9 +9,21 @@ using UnityEngine.UIElements;
 namespace PuzzleStudio.Game.Gameplay
 {
     /// <summary>
-    /// Turns raw pointer/keyboard input into board actions: hover, tap, drag &amp; drop, right-click,
-    /// and gameplay shortcuts. Pointer input over UI Toolkit buttons/panels is ignored.
-    /// (Gamepad grid cursor: milestone 9.)
+    /// Turns raw input into board actions:
+    /// mouse/touch (hover, tap, drag &amp; drop, right-click), keyboard and gamepad (board cursor, shortcuts).
+    /// Pointer input over UI Toolkit buttons/panels is ignored.
+    /// <code>
+    ///                 keyboard              gamepad
+    /// move cursor     arrows / WASD         D-pad / left stick
+    /// pick / place    Enter                 A
+    /// turn back       Q                     RB      (rotate mode)
+    /// hint            H                     X
+    /// preview (hold)  Space                 Y
+    /// undo            Ctrl+Z / Backspace    LB
+    /// restart         R                     View
+    /// pause / cancel  Esc                   Menu / B   (GameFlow)
+    /// </code>
+    /// In the sliding mode the directions push tiles into the gap instead of moving a cursor.
     /// </summary>
     public sealed class InputController : MonoBehaviour
     {
@@ -20,55 +34,116 @@ namespace PuzzleStudio.Game.Gameplay
         public Func<int, bool> CanPick;
         /// <summary>False for modes where a drag gesture only means "tap this piece" (sliding) or nothing (rotate).</summary>
         public Func<bool> AllowFreeDrag = () => true;
-        /// <summary>Arrow keys (sliding puzzle): dx, dy with y pointing down.</summary>
+        /// <summary>True when directions push tiles (sliding) rather than moving the cursor.</summary>
+        public Func<bool> DirectionSlides = () => false;
+        /// <summary>Directions in sliding mode: dx, dy with y pointing down.</summary>
         public event Action<int, int> OnDirection;
-        public bool InputEnabled = true;
+
+        /// <summary>Board input on/off. The frame it turns on is skipped: the A / Enter that pressed "Play",
+        /// "Next" or "Resume" must not also act on the board.</summary>
+        public bool InputEnabled
+        {
+            get => _inputEnabled;
+            set
+            {
+                if (value && !_inputEnabled) _enabledFrame = Time.frameCount;
+                _inputEnabled = value;
+            }
+        }
+        bool _inputEnabled = true;
+        int _enabledFrame = -1;
 
         public event Action<int> OnTap;
         public event Action<int> OnDragStart;
         public event Action<int, int> OnDrop;        // from, to (-1 = outside)
-        public event Action<int> OnSecondaryTap;     // right click
+        public event Action<int> OnSecondaryTap;     // right click / RB / Q
         public event Action OnUndo;
         public event Action OnHint;
         public event Action OnRestart;
         public event Action<bool> OnPreview;          // held / released
 
         const float DragThresholdPx = 10f;
+        const float StickDeadZone = 0.55f;
 
         int _pressCell = -1;
         Vector2 _pressPos;
         bool _dragging;
         bool _previewHeld;
+        RepeatTimer _repeat = new RepeatTimer(0.32f, 0.11f);
 
         void Update()
         {
-            HandleKeyboard();
+            var kb = Viewport.KeyboardEnabled ? Keyboard.current : null;
+            var pad = Gamepad.current;
+            if (Time.frameCount == _enabledFrame) { kb = null; pad = null; }
+            HandleShortcuts(kb, pad);
+            HandleNavigation(kb, pad);
             HandlePointer();
         }
 
-        void HandleKeyboard()
+        void HandleShortcuts(Keyboard kb, Gamepad pad)
         {
-            var kb = Keyboard.current;
-            if (kb == null) return;
-            if (!Viewport.KeyboardEnabled)
-            {
-                if (_previewHeld) { _previewHeld = false; OnPreview?.Invoke(false); }
-                return;
-            }
-
-            bool previewKey = InputEnabled && kb.spaceKey.isPressed;
-            if (previewKey != _previewHeld) { _previewHeld = previewKey; OnPreview?.Invoke(previewKey); }
+            bool previewHeld = InputEnabled && ((kb != null && kb.spaceKey.isPressed) || (pad != null && pad.buttonNorth.isPressed));
+            if (previewHeld != _previewHeld) { _previewHeld = previewHeld; OnPreview?.Invoke(previewHeld); }
             if (!InputEnabled) return;
 
-            bool ctrl = kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed;
-            if (ctrl && kb.zKey.wasPressedThisFrame) OnUndo?.Invoke();
-            else if (kb.backspaceKey.wasPressedThisFrame) OnUndo?.Invoke();
-            if (kb.hKey.wasPressedThisFrame) OnHint?.Invoke();
-            if (kb.rKey.wasPressedThisFrame && !ctrl) OnRestart?.Invoke();
-            if (kb.leftArrowKey.wasPressedThisFrame) OnDirection?.Invoke(-1, 0);
-            else if (kb.rightArrowKey.wasPressedThisFrame) OnDirection?.Invoke(1, 0);
-            else if (kb.upArrowKey.wasPressedThisFrame) OnDirection?.Invoke(0, -1);
-            else if (kb.downArrowKey.wasPressedThisFrame) OnDirection?.Invoke(0, 1);
+            bool ctrl = kb != null && (kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed);
+            bool undo = (kb != null && ((ctrl && kb.zKey.wasPressedThisFrame) || kb.backspaceKey.wasPressedThisFrame))
+                        || (pad != null && pad.leftShoulder.wasPressedThisFrame);
+            bool hint = (kb != null && kb.hKey.wasPressedThisFrame) || (pad != null && pad.buttonWest.wasPressedThisFrame);
+            bool restart = (kb != null && kb.rKey.wasPressedThisFrame && !ctrl) || (pad != null && pad.selectButton.wasPressedThisFrame);
+            if (undo) OnUndo?.Invoke();
+            if (hint) OnHint?.Invoke();
+            if (restart) OnRestart?.Invoke();
+        }
+
+        void HandleNavigation(Keyboard kb, Gamepad pad)
+        {
+            if (!InputEnabled || Board == null) { _repeat.Reset(); return; }
+
+            var dir = ReadDirection(kb, pad);
+            int key = dir == Vector2Int.zero ? 0 : (dir.x + 2) * 10 + dir.y + 2;
+            if (_repeat.Tick(key, Time.unscaledDeltaTime))
+            {
+                if (DirectionSlides()) OnDirection?.Invoke(dir.x, dir.y);
+                else if (!Board.CursorVisible) Board.ShowCursor(Board.HoverCell);   // first press: show where we are
+                else Board.MoveCursor(dir.x, dir.y);
+            }
+            if (DirectionSlides()) return;
+
+            bool confirm = (kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame))
+                           || (pad != null && pad.buttonSouth.wasPressedThisFrame);
+            if (confirm)
+            {
+                if (!Board.CursorVisible) Board.ShowCursor(Board.HoverCell);
+                else OnTap?.Invoke(Board.CursorCell);
+            }
+            bool secondary = (kb != null && kb.qKey.wasPressedThisFrame) || (pad != null && pad.rightShoulder.wasPressedThisFrame);
+            if (secondary && Board.CursorVisible) OnSecondaryTap?.Invoke(Board.CursorCell);
+        }
+
+        /// <summary>D-pad, then left stick, then arrows / WASD. y points down.</summary>
+        static Vector2Int ReadDirection(Keyboard kb, Gamepad pad)
+        {
+            if (pad != null)
+            {
+                var d = pad.dpad;
+                if (d.left.isPressed) return new Vector2Int(-1, 0);
+                if (d.right.isPressed) return new Vector2Int(1, 0);
+                if (d.up.isPressed) return new Vector2Int(0, -1);
+                if (d.down.isPressed) return new Vector2Int(0, 1);
+                var s = pad.leftStick.ReadValue();
+                if (s.magnitude > StickDeadZone)
+                    return Mathf.Abs(s.x) > Mathf.Abs(s.y) ? new Vector2Int(s.x > 0 ? 1 : -1, 0) : new Vector2Int(0, s.y > 0 ? -1 : 1);
+            }
+            if (kb != null)
+            {
+                if (kb.leftArrowKey.isPressed || kb.aKey.isPressed) return new Vector2Int(-1, 0);
+                if (kb.rightArrowKey.isPressed || kb.dKey.isPressed) return new Vector2Int(1, 0);
+                if (kb.upArrowKey.isPressed || kb.wKey.isPressed) return new Vector2Int(0, -1);
+                if (kb.downArrowKey.isPressed || kb.sKey.isPressed) return new Vector2Int(0, 1);
+            }
+            return Vector2Int.zero;
         }
 
         void HandlePointer()
@@ -85,7 +160,7 @@ namespace PuzzleStudio.Game.Gameplay
             if (!InputEnabled)
             {
                 CancelDrag();
-                Board.SetHover(-1);
+                if (!InputModeTracker.UsesNavigation) Board.SetHover(-1);
                 return;
             }
 
@@ -127,7 +202,8 @@ namespace PuzzleStudio.Game.Gameplay
                 }
             }
 
-            if (!pointer.press.isPressed)
+            // With a gamepad / keyboard the cursor owns the hover highlight.
+            if (!pointer.press.isPressed && !InputModeTracker.UsesNavigation)
                 Board.SetHover(overUi ? -1 : Board.CellAt(world));
 
             var mouse = Mouse.current;

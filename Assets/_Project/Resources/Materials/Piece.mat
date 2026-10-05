@@ -31,6 +31,7 @@ Material:
     m_Floats:
     - _Border: 0.02
     - _HighlightWidth: 0.05
+    - _Hollow: 0
     - _Radius: 0.08
     - _Softness: 0
     m_Colors:

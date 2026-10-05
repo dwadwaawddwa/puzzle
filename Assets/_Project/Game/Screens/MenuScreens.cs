@@ -124,7 +124,9 @@ namespace PuzzleStudio.Game.Screens
                 Add(Pz.MakeIconButton(Icon.Trophy, loc.T("menu.achievements"), Pz.Ghost, Flow.ShowAchievements));
             Add(Pz.MakeIconButton(Icon.Gear, loc.T("menu.settings"), Pz.Ghost, () => Flow.ShowSettings(asOverlay: false)));
             Add(Pz.MakeIconButton(Icon.Info, loc.T("menu.credits"), Pz.Ghost, Flow.ShowCredits));
-            if (!Flow.IsPreview) Add(Pz.MakeIconButton(Icon.Close, loc.T("menu.quit"), Pz.Ghost, Flow.Quit));
+            if (!Flow.IsPreview)
+                Add(Pz.MakeIconButton(Icon.Close, loc.T("menu.quit"), Pz.Ghost,
+                    () => Flow.Confirm(loc.T("menu.quitConfirm"), loc.T("menu.quitYes"), Flow.Quit)));
 
             Flow.Theme.Apply(Root);
             ApplyLayout();
@@ -341,7 +343,7 @@ namespace PuzzleStudio.Game.Screens
     public sealed class ConfirmScreen : GameScreen
     {
         readonly Label _message;
-        readonly Button _ok;
+        readonly Button _ok, _cancel;
         Action _onOk;
 
         public ConfirmScreen(GameFlow flow) : base(flow)
@@ -350,8 +352,8 @@ namespace PuzzleStudio.Game.Screens
             Root = MakeRoot("pz-overlay pz-overlay--in");
             _message = Pz.MakeLabel("", $"pz-confirm-text {Pz.Text}");
             _ok = Pz.MakeButton(loc.T("confirm.yes"), Pz.Danger, () => { flow.CloseOverlay(); _onOk?.Invoke(); });
-            var cancel = Pz.MakeButton(loc.T("confirm.cancel"), Pz.Ghost, flow.CloseOverlay);
-            Root.Add(Pz.MakeBox($"{Pz.Card} {Pz.Surface}", _message, Pz.MakeBox("pz-card-buttons", cancel, _ok)));
+            _cancel = Pz.MakeButton(loc.T("confirm.cancel"), Pz.Ghost, flow.CloseOverlay);
+            Root.Add(Pz.MakeBox($"{Pz.Card} {Pz.Surface}", _message, Pz.MakeBox("pz-card-buttons", _cancel, _ok)));
             Root.styleSheets.Add(Resources.Load<StyleSheet>("UI/Game"));
             flow.Theme.Apply(Root);
         }
@@ -363,7 +365,8 @@ namespace PuzzleStudio.Game.Screens
             _onOk = onOk;
         }
 
-        public override VisualElement DefaultFocus => _ok;
+        /// <summary>Cancel first: a stray A / Enter never erases progress or quits.</summary>
+        public override VisualElement DefaultFocus => _cancel;
         public override void OnShow() => Flow.Theme.Apply(Root);
     }
 
