@@ -44,8 +44,7 @@ namespace PuzzleStudio.Tests
             for (int i = 0; i < 5; i++)
             {
                 var c = new Color(rng.NextFloat(), rng.NextFloat(), rng.NextFloat());
-                Color.RGBToHSV(c, out _, out float s, out float v);
-                list.Add(new PaletteExtractor.Swatch { Color = c, Weight = 0.2f, Vividness = s * v });
+                list.Add(PaletteExtractor.Swatch.Of(c, 0.2f));
             }
             return list;
         }
@@ -61,6 +60,10 @@ namespace PuzzleStudio.Tests
                 var text = ColorUtil.Parse(c.text, Color.black);
                 Assert.GreaterOrEqual(ColorUtil.ContrastRatio(text, ColorUtil.Parse(c.background, Color.white)), 4.5f, $"{preset} seed {seed} bg");
                 Assert.GreaterOrEqual(ColorUtil.ContrastRatio(text, ColorUtil.Parse(c.surface, Color.white)), 4.5f, $"{preset} seed {seed} surface");
+                Assert.GreaterOrEqual(ColorUtil.ContrastRatio(text, ColorUtil.Parse(c.background2, Color.white)), 4.5f, $"{preset} seed {seed} gradient end");
+                Assert.GreaterOrEqual(ColorUtil.ContrastRatio(text, ColorUtil.Parse(c.background3, Color.white)), 4.5f, $"{preset} seed {seed} glow");
+                if (mode == AutoColors.Full)
+                    Assert.GreaterOrEqual(ColorUtil.ContrastRatio(ColorUtil.Parse(c.primary, Color.white), ColorUtil.Parse(c.surface, Color.white)), 3f - 1e-3f, $"{preset} seed {seed} buttons stand out");
             }
         }
 

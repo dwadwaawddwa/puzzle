@@ -61,8 +61,9 @@ namespace PuzzleStudio.Studio.Panels
             {
                 if (i >= 0) { t.autoColors = (AutoColors)i; Changed(); }
             }));
-            colors.Add(Fields.Hint("Follows each picture: during a level, the background (and with \"whole theme\" the buttons and highlights) " +
-                                   "take the dominant colors of that level's picture. Text always stays readable."));
+            colors.Add(Fields.Hint("During a level the background takes the picture's dominant color, its gradient the 2nd main color and " +
+                                   "the animated glow the 3rd. With \"whole theme\", buttons, stars and the selection take the picture's " +
+                                   "other, more colorful colors. Works with every background type; text always stays readable."));
             colors.Add(Fields.Row(Fields.Button("Generate palette from images", GeneratePalette, "studio-btn--small")));
             void AddColor(string label, Func<string> get, Action<string> set) =>
                 colors.Add(new ColorField(label, get(), v => { set(v); Changed(); App.RefreshContrast(); }, () => App.PopupLayer, palette));
@@ -255,9 +256,11 @@ namespace PuzzleStudio.Studio.Panels
             }
             var merged = PaletteExtractor.Merge(palettes);
             var colors = ThemeDerivation.FromPalette(Pack.theme.colors, merged, AutoColors.Full);
+            // The gradient (and the animated glow) use the next main colors of the pictures.
+            Pack.theme.background.gradient = new List<string> { colors.background, colors.background2, colors.background3 };
+            colors.background2 = colors.background3 = null;
             Pack.theme.colors = colors;
             Pack.theme.preset = "Custom";
-            if (Pack.theme.background.gradient.Count > 0) Pack.theme.background.gradient[0] = colors.background;
             App.Toast("Palette generated from " + palettes.Count + " picture(s)");
             Changed(rebuildInspector: true);
         }

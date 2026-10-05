@@ -48,6 +48,8 @@
     "autoColors": "Off",
     "colors": {
       "background": "#12101F",
+      "background2": null,
+      "background3": null,
       "surface": "#1E1B33",
       "primary": "#FF4FD8",
       "secondary": "#3DE0FF",
@@ -124,8 +126,12 @@
     "pitchVariation": 0.08
   },
   "steam": {
+    "depotId": 0,
+    "restartThroughSteam": true,
     "cloudEnabled": false,
     "richPresence": true,
+    "achievementsEnabled": true,
+    "showAchievementsInGame": true,
     "achievements": []
   },
   "layout": {
@@ -194,5 +200,6 @@
       },
       "seed": null
     }
-  ]
+  ],
+  "texts": {}
 }

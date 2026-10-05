@@ -72,6 +72,8 @@ namespace PuzzleStudio.Game.Bootstrap
             if (!ServiceHub.IsReady || ServiceHub.Pack.levels.Count == 0)
             {
                 ShowError(uiRoot, ServiceHub.LoadError ?? ServiceHub.Loc?.T("error.noLevels") ?? "No levels.");
+                // Automated runs (screenshots, tests) must never leave an error window open.
+                if (_host == null && DebugCapture.HasFlag("-captureQuit")) Invoke(nameof(QuitAfterError), 3f);
                 return;
             }
 
@@ -119,6 +121,12 @@ namespace PuzzleStudio.Game.Bootstrap
             if (EventSystem.current != null || Object.FindAnyObjectByType<EventSystem>() != null) return;
             var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             Object.DontDestroyOnLoad(go);
+        }
+
+        void QuitAfterError()
+        {
+            Debug.LogError("[Capture] The game could not load; quitting (-captureQuit).");
+            Application.Quit();
         }
 
         void OnDestroy()

@@ -27,7 +27,7 @@ namespace PuzzleStudio.Studio.App
     /// </summary>
     public sealed class StudioApp : MonoBehaviour
     {
-        public const string Version = "Studio v2";
+        public const string Version = "Puzzle Studio 1.0";
         /// <summary>Edits closer together than this form one undo step (typing, dragging a slider).</summary>
         const float UndoPause = 0.6f;
         const float AutosaveSeconds = 60f;

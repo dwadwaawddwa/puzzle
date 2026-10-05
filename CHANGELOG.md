@@ -1,5 +1,38 @@
 # Changelog
 
+## [Jalon 10] Passe qualité + couleurs selon les images — 2026-10-05
+
+### Amélioré
+- **Couleurs selon les images** refaites :
+  - extraction des couleurs dans **OKLab** (perceptuel), les nuances identiques sont fusionnées ;
+  - **fond = couleur dominante**, **fin du dégradé = 2e couleur**, **halo / lueurs du fond animé = 3e couleur** ;
+  - **boutons, boutons secondaires, étoiles, sélection = couleurs moins dominantes et plus vives** (l'orange reste
+    orange, plus de boutons « marron ») ; image grise → boutons du thème ;
+  - même clarté de fond quelle que soit la teinte ; texte lisible garanti (testé sur 600 palettes, 4 thèmes) ;
+  - fonctionne sur **tous les types de fond**, y compris animé, motif, image et image floutée, en clair et en sombre.
+- **Fond** : dégradé adouci aux extrémités, **3e couleur** (halo sur les dégradés, lueurs qui se déplacent sur le fond
+  animé), **tramage** contre les bandes de couleur sur grand écran.
+- « Generate palette from images » (Studio) remplit aussi les 3 couleurs du dégradé.
+- Libellés des boutons : encre foncée si ni le blanc ni le texte du thème ne sont lisibles (boutons clairs en thème sombre).
+
+### Corrigé
+- Image de niveau manquante ou illisible : image de remplacement colorée (pièces toutes différentes, niveau jouable)
+  au lieu de pièces grises identiques.
+- En mode capture automatique (`-captureQuit`), un pack illisible ferme le jeu au lieu de laisser une fenêtre d'erreur.
+- Style `:first-child` non supporté par UI Toolkit (avertissement à chaque lancement) remplacé.
+
+### Vérifié
+- Journaux du jeu et du Studio sans avertissement ni erreur sur une session complète (tous les écrans, tous les onglets).
+- Pack « piège » : image absente, corrompue, minuscule (64 px), énorme (6000 × 4000), très large (3000 × 300) : aucun plantage.
+- **Performances** (1920 × 1080, grille 12 × 12, fond animé, confettis) : 0,8 ms par image en moyenne, 0 ramasse-miettes
+  sur 400 images (pas d'à-coups). Nouvelle action de mesure `perf`.
+- Régénération des SamplePacks : images identiques (seuls les nouveaux champs apparaissent dans game.json).
+- Tests : 178 EditMode + 4 PlayMode.
+
+### Ajouté
+- `RELEASE_CHECKLIST.md` : la liste des étapes pour sortir un jeu sur Steam.
+- Le Studio s'appelle maintenant « Puzzle Studio 1.0 ».
+
 ## [Jalon 7] Studio v2 — 2026-10-05
 
 ### Ajouté

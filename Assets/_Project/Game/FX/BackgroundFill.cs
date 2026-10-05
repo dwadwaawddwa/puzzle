@@ -14,6 +14,8 @@ namespace PuzzleStudio.Game.FX
     {
         static readonly int ColorAId = Shader.PropertyToID("_ColorA");
         static readonly int ColorBId = Shader.PropertyToID("_ColorB");
+        static readonly int ColorCId = Shader.PropertyToID("_ColorC");
+        static readonly int GlowId = Shader.PropertyToID("_Glow");
         static readonly int AngleId = Shader.PropertyToID("_Angle");
         static readonly int AnimateId = Shader.PropertyToID("_Animate");
         static readonly int SpeedId = Shader.PropertyToID("_Speed");
@@ -52,20 +54,17 @@ namespace PuzzleStudio.Game.FX
         /// <param name="perLevelColors">True when the palette was derived from a level picture.</param>
         public void Apply(BackgroundConfig bg, ThemePalette palette, bool perLevelColors, bool reduceMotion)
         {
-            Color a = palette.Background;
+            var (a, b, c) = Colors(bg, palette, perLevelColors);
             bool dark = ColorUtil.RelativeLuminance(a) < 0.35f;
-            Color b;
-            if (!perLevelColors && bg.gradient != null && bg.gradient.Count > 1)
-                b = ColorUtil.Parse(bg.gradient[1], ColorUtil.Shade(a, dark ? 0.06f : -0.06f));
-            else b = ColorUtil.Shade(a, dark ? 0.07f : -0.07f);
-
             bool gradient = bg.type == BackgroundType.Gradient || bg.type == BackgroundType.AnimatedGradient ||
                             bg.type == BackgroundType.Image || bg.type == BackgroundType.BlurredLevel;
-            if (!gradient) b = a;
+            if (!gradient) b = c = a;
             bool animate = bg.type == BackgroundType.AnimatedGradient && !reduceMotion;
 
             _mpb.SetColor(ColorAId, a);
             _mpb.SetColor(ColorBId, b);
+            _mpb.SetColor(ColorCId, c);
+            _mpb.SetFloat(GlowId, gradient ? 1f : 0f);
             _mpb.SetFloat(AngleId, bg.gradientAngle);
             _mpb.SetFloat(AnimateId, animate ? 1f : 0f);
             _mpb.SetFloat(SpeedId, Mathf.Max(0.01f, bg.animationSpeed));
@@ -75,6 +74,23 @@ namespace PuzzleStudio.Game.FX
             _mpb.SetFloat(PatternScaleId, Mathf.Clamp(bg.patternScale, 0.25f, 4f));
             _mpb.SetFloat(VignetteId, Mathf.Clamp01(bg.vignette));
             _renderer.SetPropertyBlock(_mpb);
+        }
+
+        /// <summary>
+        /// Start, end and glow colors. Per-level colors bring their own (dominant, 2nd and 3rd colors of the picture);
+        /// otherwise the theme gradient list is used ([0] is the background color), and missing ones are shades of it.
+        /// </summary>
+        public static (Color a, Color b, Color c) Colors(BackgroundConfig bg, ThemePalette palette, bool perLevelColors)
+        {
+            Color a = palette.Background;
+            bool dark = ColorUtil.RelativeLuminance(a) < 0.35f;
+            if (perLevelColors && palette.HasBackgroundColors) return (a, palette.Background2, palette.Background3);
+
+            Color b = ColorUtil.Shade(a, dark ? 0.07f : -0.07f);
+            if (!perLevelColors && bg.gradient != null && bg.gradient.Count > 1) b = ColorUtil.Parse(bg.gradient[1], b);
+            Color c = ColorUtil.Shade(Color.Lerp(a, b, 0.5f), dark ? 0.08f : 0.03f);
+            if (!perLevelColors && bg.gradient != null && bg.gradient.Count > 2) c = ColorUtil.Parse(bg.gradient[2], c);
+            return (a, b, c);
         }
 
         void LateUpdate()

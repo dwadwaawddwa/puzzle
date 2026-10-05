@@ -45,7 +45,7 @@ namespace PuzzleStudio.Game.Screens
             var titleBlock = LayoutService.Tag(Pz.MakeBox("pz-title-block", _levelLabel, _levelName), "title");
 
             _movesValue = Pz.MakeLabel("0", $"pz-pill-value {Pz.Text} {Pz.Heading}");
-            _movesPill = Pz.MakeBox($"{Pz.Pill} {Pz.Surface}", Pz.MakeLabel(loc.T("hud.moves"), $"pz-pill-label {Pz.TextMuted}"), _movesValue);
+            _movesPill = Pz.MakeBox($"{Pz.Pill} {Pz.Surface} pz-pill--first", Pz.MakeLabel(loc.T("hud.moves"), $"pz-pill-label {Pz.TextMuted}"), _movesValue);
             _timeValue = Pz.MakeLabel("00:00", $"pz-pill-value {Pz.Text} {Pz.Heading}");
             _timePill = Pz.MakeBox($"{Pz.Pill} {Pz.Surface}", Pz.MakeLabel(loc.T("hud.time"), $"pz-pill-label {Pz.TextMuted}"), _timeValue);
             _pauseBtn = Pz.MakeIconButton(Icon.Pause, null, Pz.Ghost, () => OnPause?.Invoke());

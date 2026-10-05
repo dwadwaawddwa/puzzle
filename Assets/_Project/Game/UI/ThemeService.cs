@@ -10,6 +10,9 @@ namespace PuzzleStudio.Game.UI
     {
         public Color Background, Surface, Primary, Secondary, Text, TextMuted, Accent, Success, Highlight, HighlightColorblind;
         public Color OnPrimary, OnSecondary;
+        /// <summary>Gradient end / glow from per-level colors (only when <see cref="HasBackgroundColors"/>).</summary>
+        public Color Background2, Background3;
+        public bool HasBackgroundColors;
 
         public static ThemePalette From(ThemeColors c)
         {
@@ -29,15 +32,23 @@ namespace PuzzleStudio.Game.UI
             };
             p.OnPrimary = ReadableOn(p.Primary, p.Text);
             p.OnSecondary = ReadableOn(p.Secondary, p.Text);
+            p.HasBackgroundColors = ColorUtil.TryParseHex(c.background2, out p.Background2) & ColorUtil.TryParseHex(c.background3, out p.Background3);
             return p;
         }
 
-        /// <summary>White or the theme text color, whichever reads better on <paramref name="bg"/>.</summary>
+        static readonly Color Ink = new Color(0.08f, 0.08f, 0.1f);
+
+        /// <summary>
+        /// White or the theme text color, whichever reads better on <paramref name="bg"/>; if neither reads well
+        /// (a light button in a dark theme), a near-black ink.
+        /// </summary>
         public static Color ReadableOn(Color bg, Color themeText)
         {
             float white = ColorUtil.ContrastRatio(Color.white, bg);
             float text = ColorUtil.ContrastRatio(themeText, bg);
-            return white >= text ? Color.white : themeText;
+            var best = white >= text ? Color.white : themeText;
+            if (Mathf.Max(white, text) < 3f && ColorUtil.ContrastRatio(Ink, bg) > Mathf.Max(white, text)) best = Ink;
+            return best;
         }
     }
 

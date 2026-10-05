@@ -6,6 +6,8 @@ Shader "PuzzleStudio/Background"
     {
         _ColorA ("Color A", Color) = (0.96, 0.94, 0.9, 1)
         _ColorB ("Color B", Color) = (0.92, 0.86, 0.78, 1)
+        _ColorC ("Glow color", Color) = (1, 1, 1, 1)
+        _Glow ("Glow (0/1)", Float) = 1
         _Angle ("Gradient angle (degrees)", Float) = 135
         _Animate ("Animate (0/1)", Float) = 0
         _Speed ("Animation speed", Float) = 0.2
@@ -32,8 +34,8 @@ Shader "PuzzleStudio/Background"
             #pragma target 3.0
             #include "UnityCG.cginc"
 
-            fixed4 _ColorA, _ColorB, _PatternColor;
-            float _Angle, _Animate, _Speed, _Pattern, _PatternOpacity, _PatternScale, _Vignette, _Aspect;
+            fixed4 _ColorA, _ColorB, _ColorC, _PatternColor;
+            float _Angle, _Animate, _Speed, _Pattern, _PatternOpacity, _PatternScale, _Vignette, _Aspect, _Glow;
 
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
@@ -65,16 +67,26 @@ Shader "PuzzleStudio/Background"
                 {
                     t += 0.10 * sin(tm * 1.7 + p.x * 1.3) + 0.07 * sin(tm * 1.1 + p.y * 2.3);
                 }
-                fixed3 col = lerp(_ColorA.rgb, _ColorB.rgb, saturate(t));
+                // Eased ends: no visible "kink" where the gradient starts and stops.
+                t = saturate(t);
+                t = t * t * (3.0 - 2.0 * t);
+                float3 col = lerp(_ColorA.rgb, _ColorB.rgb, t);
+
+                // Third color: a soft glow (top-left) that gives depth to static gradients.
+                if (_Glow > 0.5 && _Animate < 0.5)
+                {
+                    float g = 1.0 - smoothstep(0.0, 0.95, length(p - float2(-0.42 * _Aspect, 0.32)));
+                    col = lerp(col, _ColorC.rgb, g * 0.55);
+                }
                 if (_Animate > 0.5)
                 {
-                    // Two slow soft light blobs drifting around.
+                    // Two slow soft glows drifting around: the third color and the gradient end.
                     float2 c1 = float2(sin(tm * 0.6) * 0.45 * _Aspect, cos(tm * 0.45) * 0.3);
                     float2 c2 = float2(cos(tm * 0.38 + 1.7) * 0.5 * _Aspect, sin(tm * 0.52 + 0.4) * 0.35);
-                    float b1 = 1.0 - smoothstep(0.0, 0.75, length(p - c1));
-                    float b2 = 1.0 - smoothstep(0.0, 0.65, length(p - c2));
-                    col = lerp(col, _ColorB.rgb, b1 * 0.35);
-                    col = lerp(col, _ColorA.rgb, b2 * 0.30);
+                    float b1 = 1.0 - smoothstep(0.0, 0.8, length(p - c1));
+                    float b2 = 1.0 - smoothstep(0.0, 0.7, length(p - c2));
+                    col = lerp(col, _ColorC.rgb, b1 * b1 * 0.6);
+                    col = lerp(col, _ColorB.rgb, b2 * b2 * 0.45);
                 }
 
                 // ---- pattern (about 22 cells per screen height at scale 1)
@@ -108,6 +120,10 @@ Shader "PuzzleStudio/Background"
                 // ---- vignette
                 float v = smoothstep(0.45, 1.05, length((i.uv - 0.5) * float2(1.15, 1.35)) * 1.25);
                 col *= 1.0 - v * _Vignette;
+
+                // Dithering: breaks the 8-bit steps of wide, soft gradients ("banding") on big screens.
+                float noise = frac(sin(dot(i.pos.xy, float2(12.9898, 78.233))) * 43758.5453);
+                col += (noise - 0.5) / 255.0;
 
                 return fixed4(col, 1.0);
             }

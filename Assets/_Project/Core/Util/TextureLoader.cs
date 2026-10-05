@@ -58,6 +58,36 @@ namespace PuzzleStudio.Core.Util
             return result;
         }
 
+        public const string PlaceholderName = "placeholder";
+
+        /// <summary>
+        /// Picture used when a level's file is missing or unreadable: colorful bands and rings so every piece looks
+        /// different and the level stays playable (the error is logged; the Studio refuses to export such a pack).
+        /// </summary>
+        public static Texture2D Placeholder(int size = 512)
+        {
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = PlaceholderName };
+            var px = new Color32[size * size];
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float u = (float)x / size, v = (float)y / size;
+                    // Hue changes left → right, lightness and saturation top → bottom: every tile has its own color.
+                    var c = Color.HSVToRGB(u * 0.85f, 0.3f + v * 0.35f, 0.98f - v * 0.28f);
+                    float ring = Mathf.Repeat(Vector2.Distance(new Vector2(u, v), new Vector2(0.5f, 0.5f)) * 9f, 1f);
+                    if (ring < 0.12f) c *= 0.78f;
+                    if (((x + y) / (size / 16)) % 2 == 0) c = Color.Lerp(c, Color.white, 0.14f);
+                    c.a = 1f;
+                    px[y * size + x] = c;
+                }
+            tex.SetPixels32(px);
+            tex.Apply(false);
+            Configure(tex);
+            return tex;
+        }
+
+        public static bool IsPlaceholder(Texture tex) => tex != null && tex.name == PlaceholderName;
+
         public static void Configure(Texture2D tex)
         {
             tex.wrapMode = TextureWrapMode.Clamp;

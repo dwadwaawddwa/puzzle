@@ -259,7 +259,7 @@ Le jeu accepte aussi `-pack "C:\chemin\GamePack"` pour tester sans exporter.
 
 ## 6. Jalons
 
-1. Architecture ← **on est ici**
+1. Architecture ✔ (tous les jalons 1 à 10 sont terminés, voir CHANGELOG.md)
 2. Core + SwapTiles + SamplePack + tests
 3. Jeu complet (écrans, save, options, loc EN, thème, audio)
 4. Polish / juice (shader, fonds animés, victoire)

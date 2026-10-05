@@ -82,7 +82,7 @@
 .pz-pill-label { font-size: 19px; margin-right: 12px; }
 .pz-pill-value { font-size: 28px; min-width: 54px; -unity-text-align: middle-right; }
 .pz-stats .pz-button { margin-left: 14px; margin-right: 0; }
-.pz-stats .pz-pill:first-child { margin-left: 0; }
+.pz-stats .pz-pill--first { margin-left: 0; }
 
 .pz-bottombar {
     flex-direction: row;

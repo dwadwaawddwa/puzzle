@@ -6,8 +6,10 @@ Un même projet Unity produit deux programmes :
 
 | Programme | Rôle | État |
 |---|---|---|
-| **Player Template** (`Build/Template/Game.exe`) | Le jeu générique. Il ne contient aucun contenu et se construit tout seul à partir d'un **Game Pack** (JSON + images). | ✅ jeu complet (jalon 3) : menus, niveaux, options, sons |
-| **PuzzleStudio.exe** (`Build/PuzzleStudio/`) | L'outil de création : projets, niveaux, thème, aperçu en direct jouable, Play Test, export du jeu final | ✅ v1 |
+| **Player Template** (`Build/Template/Game.exe`) | Le jeu générique. Il ne contient aucun contenu et se construit tout seul à partir d'un **Game Pack** (JSON + images). | ✅ 1.0 : 4 modes, menus, succès, Steam, manette / Steam Deck, accessibilité |
+| **PuzzleStudio.exe** (`Build/PuzzleStudio/`) | L'outil de création : projets, niveaux, thème, audio, textes, Steam, aperçu en direct jouable, Play Test, export du jeu final | ✅ 1.0 |
+
+Les 10 jalons du plan sont terminés. Avant de publier un jeu : [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 L'architecture complète est décrite dans [ARCHITECTURE.md](ARCHITECTURE.md), l'historique dans [CHANGELOG.md](CHANGELOG.md).
 
@@ -116,6 +118,7 @@ Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzlepro
 | `-capture a.png;b.png -debugAction none;solve -captureQuit` | outil de dev : captures d'écran automatiques (actions : `none`, `select`, `hint`, `partial`, `solve`, `menu`, `levels`, `settings`, `credits`, `end`, `pause`, `pausesettings`, `achievements`, `play2`…, combinables : `play2+partial`) |
 | `-tempSave` / `-demoProgress` | sauvegarde jetable (et remplie à ~40 %) : utilisé pour les captures de la boutique |
 | `-mute` / `-noSteam` | sans son / sans initialiser Steam |
+| action `perf` | mesure 400 images sans limite de FPS : temps moyen / 95e centile / pire, ramasse-miettes (`[Perf]` dans Player.log) |
 | actions `pad:a`, `pad:right`, `pad:start`… | appuie sur un bouton d'une manette virtuelle (tests de la manette sans manette) |
 
 Ordre de recherche du pack : `-pack`, puis `<Jeu>_Data/StreamingAssets/GamePack/`, puis (éditeur seulement) `SamplePacks/CozyPastel`.
@@ -132,7 +135,7 @@ Assets/_Project/Studio   outil de création — PuzzleStudio.asmdef : StudioApp 
 Assets/_Project/Shaders  Piece.shader (coins arrondis SDF, bordure, surbrillance)
 Assets/_Project/Resources  polices OFL, en.json, USS, PanelSettings, matériau
 Assets/Editor/BuildTools   setup du projet, génération des SamplePacks, builds
-Assets/Tests             EditMode (167 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
+Assets/Tests             EditMode (178 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
 SamplePacks/             CozyPastel, DarkNeon, MinimalWhite
 _Legacy/                 ancien générateur (non compilé, conservé pour référence)
 ```

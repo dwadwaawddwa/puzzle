@@ -22,6 +22,9 @@ namespace PuzzleStudio.Core.Data
     public sealed class ThemeColors
     {
         public string background = "#F6EFE7";
+        /// <summary>Gradient end and glow colors set by per-level colors (null = from background.gradient).</summary>
+        public string background2 = null;
+        public string background3 = null;
         public string surface = "#FFFFFF";
         public string primary = "#E07A5F";
         public string secondary = "#81B29A";

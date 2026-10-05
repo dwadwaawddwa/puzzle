@@ -134,7 +134,7 @@ namespace PuzzleStudio.Game.Gameplay
             if (tex == null)
             {
                 Debug.LogError($"[Puzzle] Could not load image for level {level.id}: {level.image}");
-                tex = Texture2D.grayTexture;
+                tex = TextureLoader.Placeholder();
             }
 
             var setup = GridResolver.Resolve(_pack, index, tex.width, tex.height);
@@ -151,7 +151,7 @@ namespace PuzzleStudio.Game.Gameplay
             _board.gameObject.SetActive(true);
             _board.Build(_mode, tex, _pack.theme.pieces);
             if (InputModeTracker.UsesNavigation && _mode.DragStyle != DragStyle.Slide) _board.ShowCursor();
-            if (_texture != null && _texture != tex && _texture != Texture2D.grayTexture) Destroy(_texture);
+            if (_texture != null && _texture != tex) Destroy(_texture);
             _texture = tex;
 
             _levelIndex = index;
@@ -177,7 +177,7 @@ namespace PuzzleStudio.Game.Gameplay
             _flow.Particles.Clear();
             _board.Clear();
             _board.gameObject.SetActive(false);
-            if (_texture != null && _texture != Texture2D.grayTexture) Destroy(_texture);
+            if (_texture != null) Destroy(_texture);
             _texture = null;
             if (_theme.ColorOverride != null)
             {
@@ -190,7 +190,7 @@ namespace PuzzleStudio.Game.Gameplay
         void ApplyLevelColors(Texture2D picture)
         {
             var mode = _pack.theme.autoColors;
-            if (mode == AutoColors.Off || picture == null || picture == Texture2D.grayTexture)
+            if (mode == AutoColors.Off || picture == null || TextureLoader.IsPlaceholder(picture))
             {
                 if (_theme.ColorOverride != null) { _theme.SetColorOverride(null); _flow.OnThemeColorsChanged(); }
                 return;
@@ -270,7 +270,7 @@ namespace PuzzleStudio.Game.Gameplay
         {
             InputModeTracker.Changed -= OnInputModeChanged;
             Rumble.Stop();
-            if (_texture != null && _texture != Texture2D.grayTexture) Destroy(_texture);
+            if (_texture != null) Destroy(_texture);
         }
 
         // ------------------------------------------------------------------ actions

@@ -73,8 +73,17 @@ après chaque `OnMove`. Utilise `SupportsLocking`, `SwapCells`, `ApplyArrangemen
 ## Couleurs selon les images
 
 - Theme → *From pictures* : `"autoColors": "Off" | "Background" | "Full"` dans `game.json` (`theme`).
-- Le calcul est dans `Assets/_Project/Core/Util/ThemeDerivation.cs` (clarté du fond, saturation, contraste minimum) :
-  c'est là qu'il faut ajuster si tu veux des fonds plus ou moins colorés.
+- Pendant un niveau :
+  - **fond** = la couleur **dominante** de l'image ; **fin du dégradé** = la 2e couleur principale ;
+    **halo** (et lueurs du fond animé) = la 3e ;
+  - avec *Whole theme* : **boutons**, boutons secondaires, **étoiles** et **sélection** = les couleurs **moins dominantes
+    mais plus vives** de l'image ; une image grise garde les boutons du thème.
+- Marche avec tous les types de fond (couleur, dégradé, dégradé animé, motif, image, image du niveau floutée),
+  thème clair ou sombre. Le texte reste toujours lisible (contraste WCAG AA vérifié par les tests sur 600 palettes).
+- Les couleurs sont calculées dans l'espace **OKLab** (perceptuel) : un jaune et un bleu donnent des fonds aussi clairs.
+  Réglages (clarté, saturation, contraste) : `Assets/_Project/Core/Util/ThemeDerivation.cs` ; extraction des couleurs :
+  `PaletteExtractor.cs` ; rendu du fond : `Shaders/Background.shader` (dégradé adouci, halo, tramage anti-bandes).
+- *Generate palette from images* (onglet Theme) applique la même logique à l'ensemble des images, une fois pour toutes.
 
 ## Effets visuels (fonds, ombres, particules)
 

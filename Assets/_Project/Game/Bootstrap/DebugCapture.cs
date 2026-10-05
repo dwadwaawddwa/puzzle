@@ -53,6 +53,7 @@ namespace PuzzleStudio.Game.Bootstrap
                 foreach (var part in action.Split('+'))
                 {
                     if (part.StartsWith("pad:")) yield return PressPad(part.Substring(4));
+                    else if (part == "perf") yield return MeasurePerformance();
                     else Perform(root, part);
                 }
                 yield return new WaitForSecondsRealtime(action.EndsWith("solve") ? 4.2f : 1.0f);
@@ -109,6 +110,39 @@ namespace PuzzleStudio.Game.Bootstrap
                     mode.ForceSolve();
                     break;
             }
+        }
+
+        /// <summary>
+        /// "perf": 400 frames without the frame cap (V-Sync off) → average / 95th percentile / worst frame time,
+        /// garbage collections and memory, written to Player.log as "[Perf] …".
+        /// </summary>
+        static IEnumerator MeasurePerformance()
+        {
+            int vsync = QualitySettings.vSyncCount, target = Application.targetFrameRate;
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = -1;
+            for (int i = 0; i < 30; i++) yield return null;    // settle
+
+            const int frames = 400;
+            var times = new float[frames];
+            int gc0 = GC.CollectionCount(0);
+            long mem0 = GC.GetTotalMemory(false);
+            for (int i = 0; i < frames; i++)
+            {
+                yield return null;
+                times[i] = Time.unscaledDeltaTime * 1000f;
+            }
+            int gcs = GC.CollectionCount(0) - gc0;
+            long mem1 = GC.GetTotalMemory(false);
+            Array.Sort(times);
+            float sum = 0f;
+            foreach (var t in times) sum += t;
+            Debug.Log(string.Format(CultureInfo.InvariantCulture,
+                "[Perf] {0}x{1}: avg {2:0.00} ms ({3:0} fps), p95 {4:0.00} ms, worst {5:0.00} ms, GC {6} in {7} frames, managed heap {8:0.0} -> {9:0.0} MB",
+                Screen.width, Screen.height, sum / frames, 1000f / (sum / frames), times[(int)(frames * 0.95f)], times[frames - 1],
+                gcs, frames, mem0 / 1048576f, mem1 / 1048576f));
+            QualitySettings.vSyncCount = vsync;
+            Application.targetFrameRate = target;
         }
 
         static Gamepad _virtualPad;
