@@ -14,6 +14,8 @@ namespace PuzzleStudio.Core.Util.Win32
     {
         public const string ImageFilter = "Images (*.png, *.jpg)\0*.png;*.jpg;*.jpeg\0All files (*.*)\0*.*\0\0";
         public const string PngFilter = "PNG image (*.png)\0*.png\0Images (*.png, *.jpg)\0*.png;*.jpg;*.jpeg\0\0";
+        public const string AudioFilter = "Sounds (*.ogg, *.wav, *.mp3)\0*.ogg;*.wav;*.mp3\0All files (*.*)\0*.*\0\0";
+        public const string FontFilter = "Fonts (*.ttf, *.otf)\0*.ttf;*.otf\0All files (*.*)\0*.*\0\0";
         public const string ProjectFilter = "Puzzle Studio project (project.json)\0project.json\0\0";
 
         /// <returns>Selected files (empty if cancelled).</returns>

@@ -399,6 +399,8 @@ namespace PuzzleStudio.Game.Screens
         {
             var list = new List<(string, string)> { ("en", "English") };
             if (Resources.Load<TextAsset>("Localization/fr") != null) list.Add(("fr", "Français"));
+            foreach (var kv in Pack.texts)
+                if (kv.Value != null && kv.Value.Count > 0 && !list.Exists(l => l.Item1 == kv.Key)) list.Add((kv.Key, LanguageName(kv.Key)));
             if (!string.IsNullOrEmpty(Pack.RootPath))
             {
                 string dir = Path.Combine(Pack.RootPath, PackPaths.LocaleDir);
@@ -420,8 +422,13 @@ namespace PuzzleStudio.Game.Screens
                 case "es": return "Español";
                 case "it": return "Italiano";
                 case "pt": return "Português";
+                case "nl": return "Nederlands";
+                case "pl": return "Polski";
+                case "tr": return "Türkçe";
                 case "ja": return "Japanese";
                 case "zh": return "Chinese";
+                case "ko": return "Korean";
+                case "ru": return "Russian";
                 default: return code.ToUpperInvariant();
             }
         }

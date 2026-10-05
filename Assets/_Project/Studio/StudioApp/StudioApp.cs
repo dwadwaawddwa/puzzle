@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using PuzzleStudio.Core.Audio;
 using PuzzleStudio.Core.Data;
 using PuzzleStudio.Core.Pack;
 using PuzzleStudio.Core.Puzzle;
@@ -26,7 +27,10 @@ namespace PuzzleStudio.Studio.App
     /// </summary>
     public sealed class StudioApp : MonoBehaviour
     {
-        public const string Version = "Studio v1.1";
+        public const string Version = "Studio v2";
+        /// <summary>Edits closer together than this form one undo step (typing, dragging a slider).</summary>
+        const float UndoPause = 0.6f;
+        const float AutosaveSeconds = 60f;
 
         public StudioProject Project { get; private set; }
         public StudioSettings Settings { get; private set; }
@@ -37,12 +41,18 @@ namespace PuzzleStudio.Studio.App
         public bool Dirty { get; private set; }
         public GameExporter Exporter { get; private set; }
         public bool IsExporting { get; private set; }
+        /// <summary>Plays the project's music and sounds in the Audio tab.</summary>
+        public AudioService Audio { get; private set; }
+
+        readonly UndoHistory _history = new UndoHistory();
+        float _pendingSince = -1f;
+        float _autosaveAt;
 
         UIDocument _document;
         VisualElement _root, _body, _welcome, _inspectorContent;
         ScrollView _scroll;
         Label _inspectorHeader, _projectLabel, _status;
-        Button _saveBtn, _testBtn, _exportBtn;
+        Button _saveBtn, _testBtn, _exportBtn, _undoBtn, _redoBtn;
         DropdownField _levelDropdown, _resolutionDropdown;
         LivePreview _preview;
         readonly List<StudioPanel> _panels = new List<StudioPanel>();
@@ -58,6 +68,8 @@ namespace PuzzleStudio.Studio.App
             Application.targetFrameRate = 60;
             QualitySettings.vSyncCount = 1;
             CreateCamera();
+            Audio = new GameObject("Studio Audio").AddComponent<AudioService>();
+            Audio.transform.SetParent(transform, false);
             _document = CreateDocument();
             Settings = StudioSettings.Load();
             BuildUi();
@@ -177,6 +189,11 @@ namespace PuzzleStudio.Studio.App
             top.Add(Tip(Fields.Button("New", () => TryLeave(NewProjectDialog)), "New project (Ctrl+N)"));
             top.Add(Tip(Fields.Button("Open", () => TryLeave(OpenProjectDialog)), "Open a project (Ctrl+O)"));
             top.Add(Tip(Fields.Button("Recent", ShowRecent), "Recent projects"));
+            top.Add(Box("studio-topbar-sep"));
+            _undoBtn = Tip(Fields.Button("Undo", Undo), "Undo (Ctrl+Z)");
+            _redoBtn = Tip(Fields.Button("Redo", Redo), "Redo (Ctrl+Y)");
+            top.Add(_undoBtn);
+            top.Add(_redoBtn);
             _saveBtn = Tip(Fields.Button("Save", Save), "Save (Ctrl+S)");
             top.Add(_saveBtn);
             top.Add(Box("studio-topbar-sep"));
@@ -194,6 +211,8 @@ namespace PuzzleStudio.Studio.App
             _panels.Add(new GameplayPanel(this));
             _panels.Add(new ThemePanel(this));
             _panels.Add(new LayoutPanel(this));
+            _panels.Add(new AudioPanel(this));
+            _panels.Add(new TextsPanel(this));
             _panels.Add(new SteamPanel(this));
             _panels.Add(new ExportPanel(this));
             foreach (var p in _panels)
@@ -205,9 +224,6 @@ namespace PuzzleStudio.Studio.App
                 nav.Add(b);
             }
             nav.Add(Fields.Spacer());
-            var soon = new Label("Coming next:\nAudio · Texts");
-            soon.AddToClassList("studio-nav-soon");
-            nav.Add(soon);
             _body.Add(nav);
 
             var center = Box("studio-center");
@@ -345,6 +361,7 @@ namespace PuzzleStudio.Studio.App
         public void MarkDirty(bool rebuildInspector, bool refreshPreview = true)
         {
             Dirty = true;
+            _pendingSince = Time.unscaledTime;
             RefreshTitle();
             if (rebuildInspector) RebuildInspector();
             RefreshLevelDropdown();
@@ -542,6 +559,10 @@ namespace PuzzleStudio.Studio.App
 
             Project = project;
             Dirty = false;
+            _history.Reset(project.Snapshot());
+            _pendingSince = -1f;
+            _autosaveAt = Time.unscaledTime + AutosaveSeconds;
+            Audio.Init(project.Pack, 1f, project.Pack.audio.musicVolume, project.Pack.audio.sfxVolume);
             if (StudioDebug.Arg("-capture") == null) // automated captures never touch the user's recent list
             {
                 Settings.AddRecent(project.Root);
@@ -562,7 +583,9 @@ namespace PuzzleStudio.Studio.App
             ShowPanel(project.Pack.levels.Count == 0 ? "levels" : _current?.Id ?? "project");
             _preview.Show(project.Pack, SelectedLevel, immediate: true);
             RefreshTitle();
+            RefreshUndoButtons();
             Toast($"Opened {project.Name}");
+            CheckRecovery();
         }
 
         public void Save()
@@ -576,6 +599,107 @@ namespace PuzzleStudio.Studio.App
                 Toast("Saved");
             }
             catch (Exception e) { Modal.Message("Could not save", e.Message); }
+        }
+
+        // ------------------------------------------------------------------ undo / redo / autosave
+
+        /// <summary>Records the edits made since the last step (called when edits pause, and before undo / redo).</summary>
+        void CommitHistory()
+        {
+            _pendingSince = -1f;
+            if (Project != null && _history.Commit(Project.Snapshot())) RefreshUndoButtons();
+        }
+
+        public void Undo()
+        {
+            if (Project == null || Modal.IsOpen) return;
+            if (_pendingSince >= 0f) CommitHistory();
+            string state = _history.Undo();
+            if (state == null) { Toast("Nothing to undo"); return; }
+            ApplySnapshot(state);
+            Toast("Undone");
+        }
+
+        public void Redo()
+        {
+            if (Project == null || Modal.IsOpen) return;
+            if (_pendingSince >= 0f) CommitHistory();
+            string state = _history.Redo();
+            if (state == null) { Toast("Nothing to redo"); return; }
+            ApplySnapshot(state);
+            Toast("Redone");
+        }
+
+        /// <summary>Puts a snapshot back in place and refreshes every view on it.</summary>
+        void ApplySnapshot(string state)
+        {
+            try { Project.Restore(state); }
+            catch (Exception e) { Modal.Message("Could not undo", e.Message); return; }
+            Dirty = true;
+            _pendingSince = -1f;
+            SelectedLevel = Mathf.Clamp(SelectedLevel, 0, Math.Max(0, Project.Pack.levels.Count - 1));
+            Audio.Init(Project.Pack, 1f, Project.Pack.audio.musicVolume, Project.Pack.audio.sfxVolume);
+            _current?.OnDeactivated();
+            _current?.OnActivated();
+            RefreshTitle();
+            RefreshLevelDropdown();
+            RebuildInspector();
+            _preview.Show(Project.Pack, SelectedLevel, immediate: true);
+            RefreshUndoButtons();
+        }
+
+        void RefreshUndoButtons()
+        {
+            _undoBtn?.SetEnabled(Project != null && (_history.CanUndo || _pendingSince >= 0f));
+            _redoBtn?.SetEnabled(Project != null && _history.CanRedo && _pendingSince < 0f);
+        }
+
+        void TickHistory()
+        {
+            if (Project == null) return;
+            float now = Time.unscaledTime;
+            if (_pendingSince >= 0f && now - _pendingSince > UndoPause) CommitHistory();
+            if (Dirty && now >= _autosaveAt && !IsExporting)
+            {
+                _autosaveAt = now + AutosaveSeconds;
+                try { Project.WriteAutosave(); }
+                catch (Exception e) { Debug.LogWarning("[Studio] Autosave failed: " + e.Message); }
+            }
+        }
+
+        /// <summary>After opening: offer the autosave if the Studio closed with unsaved changes, then tidy unused files.</summary>
+        void CheckRecovery()
+        {
+            var when = Project.PendingAutosave();
+            if (when == null) { TidyFiles(); return; }
+            Modal.Show("Recover unsaved changes",
+                Fields.Hint($"Puzzle Studio closed with unsaved changes to \"{Project.Name}\" (autosaved {when.Value:g}). Recover them?", "studio-modal-text"),
+                new Modal.ButtonSpec("Discard", () => { Project.DeleteAutosave(); TidyFiles(); }, "studio-btn--danger"),
+                new Modal.ButtonSpec("Recover", () =>
+                {
+                    try
+                    {
+                        // Undo can go back to the saved project.
+                        string saved = Project.Snapshot();
+                        Project.RecoverAutosave();
+                        _history.Reset(saved);
+                        _history.Commit(Project.Snapshot());
+                        ApplySnapshot(Project.Snapshot());
+                        Toast("Unsaved changes recovered");
+                    }
+                    catch (Exception e) { Modal.Message("Could not recover", e.Message); }
+                    TidyFiles();
+                }, "studio-btn--primary"));
+        }
+
+        void TidyFiles()
+        {
+            try
+            {
+                int moved = Project.MoveUnusedFilesToTrash();
+                if (moved > 0) Debug.Log($"[Studio] {moved} unused file(s) moved to {StudioProject.TrashFolder}");
+            }
+            catch (Exception e) { Debug.LogWarning("[Studio] Cleanup failed: " + e.Message); }
         }
 
         void ShowRecent()
@@ -692,6 +816,8 @@ namespace PuzzleStudio.Studio.App
         void Update()
         {
             _preview.Tick();
+            TickHistory();
+            RefreshUndoButtons();
 
             if (_statusUntil > 0 && Time.unscaledTime > _statusUntil)
             {
@@ -704,6 +830,9 @@ namespace PuzzleStudio.Studio.App
             var kb = Keyboard.current;
             if (kb == null || Modal.IsOpen) return;
             bool ctrl = kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed;
+            bool shift = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
+            if (ctrl && kb.zKey.wasPressedThisFrame) { if (shift) Redo(); else Undo(); }
+            else if (ctrl && kb.yKey.wasPressedThisFrame) Redo();
             if (ctrl && kb.sKey.wasPressedThisFrame) Save();
             else if (ctrl && kb.nKey.wasPressedThisFrame) TryLeave(NewProjectDialog);
             else if (ctrl && kb.oKey.wasPressedThisFrame) TryLeave(OpenProjectDialog);

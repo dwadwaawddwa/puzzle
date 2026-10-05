@@ -46,11 +46,18 @@ Exemples :
 Règles : la logique d'un mode ne connaît pas l'affichage. `BoardView` relit `Pieces` (case, rotation, verrouillage)
 après chaque `OnMove`. Utilise `SupportsLocking`, `SwapCells`, `ApplyArrangement`, `Commit` de `PuzzleModeBase`.
 
-## Ajouter une langue
+## Textes, traductions et crédits (onglet Texts du Studio)
 
-1. Copie `Assets/_Project/Resources/Localization/en.json` en `fr.json` (même dossier) et traduis les valeurs.
-2. Ou, pour un seul jeu : ajoute `locale/fr.json` dans le Game Pack (il surcharge les textes intégrés) et mets
-   `"defaultLanguage": "fr"` dans `game.json`.
+- **Changer un texte du jeu** (ex. « Play » → « Start puzzling ») : onglet **Texts**, choisis la langue, cherche le texte,
+  tape le tien. Un champ vide garde le texte d'origine (affiché en gris).
+- **Ajouter une langue** (allemand, espagnol…) : *Add a language* puis traduis. Les textes non traduits restent en anglais ;
+  la langue apparaît dans les réglages du jeu dès qu'elle a un texte traduit.
+- Tout est enregistré dans `game.json` (`"texts": { "de": { "menu.play": "Spielen" } }`), donc annulable et exporté avec le jeu.
+  Ordre d'application : anglais intégré → tes changements anglais → traduction intégrée → tes changements dans cette langue
+  (un changement en anglais ne remplace jamais le français intégré).
+- **Crédits** : section *Credits* du même onglet (rôle + un nom par ligne).
+- Pour **tous les jeux** : ajoute une traduction intégrée en copiant `Assets/_Project/Resources/Localization/en.json`
+  (ex. `de.json`). Les fichiers `locale/<code>.json` d'un Game Pack marchent toujours.
 
 ## Déplacer les éléments de l'écran (Layout)
 
@@ -148,12 +155,31 @@ Dans `Assets/_Project/Studio/Themes/ThemePresets.cs` :
 
 ## Changer les sons et musiques par défaut
 
-- **Pour un seul jeu** : dans le Game Pack, mets tes fichiers dans `audio/` et indique-les dans `game.json` :
+- **Pour un seul jeu** : onglet **Audio** du Studio (*Import…* pour la musique, *Replace…* pour chaque son, *Play* pour écouter).
+  À la main : mets tes fichiers dans `audio/` du Game Pack et indique-les dans `game.json` :
   `"audio": { "musicMenu": "audio/menu.ogg", "musicGame": "audio/jeu.ogg", "sfx": { "snap": "audio/pop.wav" } }`
   (formats : ogg, wav, mp3). Les clés de sons sont : click, pick, drop, snap, star, victory, hint, undo, locked, swoosh.
 - **Pour tous les jeux** : remplace les fichiers de `Assets/_Project/Resources/Audio/` (même nom), ou modifie la
   synthèse dans `Assets/Editor/BuildTools/DefaultAudioGenerator.cs` puis menu **Build > Generate Default Audio**
   (les musiques `calm_01..03` sont décrites par une suite d'accords, un tempo et une gamme).
+
+## Logo, logo du studio et polices
+
+- Onglet **Theme** → *Logos* : le logo du jeu remplace le titre (menu, splash, crédits), le logo du studio s'affiche
+  sur le splash. PNG transparent conseillé.
+- *Fonts* → *Import…* : ta propre police `.ttf` / `.otf` pour les titres et/ou le texte (vérifie que sa licence permet
+  de l'intégrer dans un jeu ; les polices OFL le permettent). Le jeu la charge depuis le pack au lancement
+  (`FontLibrary.Definition`) ; si le fichier est illisible, la police intégrée prend le relais.
+
+## Annuler, sauvegarde automatique, fichiers du projet
+
+- **Ctrl+Z / Ctrl+Y** (ou les boutons Undo / Redo) annulent et rétablissent toute modification du projet (une frappe
+  ou un réglage glissé = une étape).
+- Toutes les 60 s, les modifications non enregistrées sont copiées dans `<projet>\.autosave\` (jamais par-dessus le
+  projet). Après un plantage, le Studio propose de les récupérer à l'ouverture.
+- Les fichiers importés (images, sons, polices) ont un nom unique : rien n'est écrasé ni supprimé pendant la session
+  (l'annulation peut toujours les retrouver). À l'ouverture suivante, les fichiers qui ne servent plus sont déplacés
+  dans `<projet>\.trash\` (vidé à l'ouverture d'après).
 
 ## Manette, Steam Deck et accessibilité
 
@@ -180,5 +206,10 @@ Dans `Assets/_Project/Studio/Themes/ThemePresets.cs` :
 3. Choisis son icône dans `SteamArt.IconFor` et son libellé dans `SteamPanel.RuleText` / `ValueLabel`.
 4. Ajoute un test dans `Assets/Tests/EditMode/SteamTests.cs`.
 
-## ⏳ À venir
-- Ajouter un réglage dans le Studio (jalon 7)
+## Ajouter un onglet au Studio
+
+1. Crée une classe `MonPanel : StudioPanel` dans `Assets/_Project/Studio/Panels/` (voir `AudioPanel.cs`) : `Id`, `Title`,
+   `Build(content)` avec les contrôles de `Fields` (`Section`, `Text`, `Toggle`, `Dropdown`, `FloatSlider`…).
+2. Après chaque modification : `Changed()` (aperçu rafraîchi) ou `App.MarkDirty(false, refreshPreview: false)`.
+   L'annulation, la sauvegarde auto et le titre « unsaved » suivent tout seuls.
+3. Ajoute-la à la liste `_panels` dans `StudioApp.BuildUi()`.

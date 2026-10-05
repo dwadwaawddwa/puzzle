@@ -49,14 +49,21 @@ namespace PuzzleStudio.Game.UI
     {
         public ThemeConfig Config { get; private set; }
         public ThemePalette Palette { get; private set; }
-        public Font HeadingFont { get; private set; }
-        public Font BodyFont { get; private set; }
+        /// <summary>Built-in font or the pack's own font file (see <see cref="FontLibrary.Definition"/>).</summary>
+        public FontDefinition HeadingFont { get; private set; }
+        public FontDefinition BodyFont { get; private set; }
 
         public bool ColorblindMode;
         public Color HighlightColor => ColorblindMode ? Palette.HighlightColorblind : Palette.Highlight;
         public Color GlowColor => ColorUtil.Parse(Config.pieces.glowColor, Palette.Success);
 
-        public ThemeService(ThemeConfig config, GamePackData pack = null) => SetTheme(config);
+        readonly GamePackData _pack;
+
+        public ThemeService(ThemeConfig config, GamePackData pack = null)
+        {
+            _pack = pack;
+            SetTheme(config);
+        }
 
         /// <summary>Colors currently replacing the theme colors (per-level colors), or null.</summary>
         public ThemeColors ColorOverride { get; private set; }
@@ -87,8 +94,8 @@ namespace PuzzleStudio.Game.UI
 
         void UpdateFonts()
         {
-            HeadingFont = FontLibrary.Get(_readableFont ? "Default:Clean" : Config.font.heading, FontRole.Heading);
-            BodyFont = FontLibrary.Get(_readableFont ? "Default:Clean" : Config.font.body, FontRole.Body);
+            HeadingFont = FontLibrary.Definition(_readableFont ? "Default:Clean" : Config.font.heading, FontRole.Heading, _pack);
+            BodyFont = FontLibrary.Definition(_readableFont ? "Default:Clean" : Config.font.body, FontRole.Body, _pack);
         }
 
         public float ButtonRadius(float height)
@@ -105,15 +112,16 @@ namespace PuzzleStudio.Game.UI
         public void Apply(VisualElement root)
         {
             var p = Palette;
-            var body = BodyFont != null ? new StyleFontDefinition(FontDefinition.FromFont(BodyFont)) : default;
-            var heading = HeadingFont != null ? new StyleFontDefinition(FontDefinition.FromFont(HeadingFont)) : default;
+            bool hasBody = FontLibrary.IsSet(BodyFont), hasHeading = FontLibrary.IsSet(HeadingFont);
+            var body = hasBody ? new StyleFontDefinition(BodyFont) : default;
+            var heading = hasHeading ? new StyleFontDefinition(HeadingFont) : default;
 
             root.Query<TextElement>().ForEach(t =>
             {
-                if (BodyFont != null) t.style.unityFontDefinition = body;
-                if (t.ClassListContains(Pz.Heading) && HeadingFont != null) t.style.unityFontDefinition = heading;
+                if (hasBody) t.style.unityFontDefinition = body;
+                if (t.ClassListContains(Pz.Heading) && hasHeading) t.style.unityFontDefinition = heading;
             });
-            root.Query(className: Pz.Heading).ForEach(e => { if (HeadingFont != null) e.style.unityFontDefinition = heading; });
+            root.Query(className: Pz.Heading).ForEach(e => { if (hasHeading) e.style.unityFontDefinition = heading; });
 
             root.Query(className: Pz.Text).ForEach(e => e.style.color = p.Text);
             root.Query(className: Pz.TextMuted).ForEach(e => e.style.color = p.TextMuted);

@@ -156,11 +156,19 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.FloatSlider("Amount", 0f, 2f, fx.intensity, v => { fx.intensity = v; Changed(); }),
                 Fields.Hint("Choose \"Victory\" in the preview screen list to see the celebration.")));
 
+            // ---- logos
+            var g = Pack.game;
+            content.Add(Fields.Section("Logos",
+                ImageRow("Game logo", g.logo, "logo", v => g.logo = v),
+                Fields.Hint("Replaces the title text in the menu, the splash and the credits. A PNG with a transparent background, about 1200 px wide."),
+                ImageRow("Studio logo", g.devLogo, "devlogo", v => g.devLogo = v),
+                Fields.Hint("Shown on the splash screen before the title (instead of \"<Developer> presents\").")));
+
             // ---- fonts
             content.Add(Fields.Section("Fonts",
-                Fields.Dropdown("Titles", FontNames, Math.Max(0, FontIds.IndexOf(t.font.heading)), i => { if (i >= 0) { t.font.heading = FontIds[i]; Changed(); } }),
-                Fields.Dropdown("Text", FontNames, Math.Max(0, FontIds.IndexOf(t.font.body)), i => { if (i >= 0) { t.font.body = FontIds[i]; Changed(); } }),
-                Fields.Hint("Free fonts (SIL Open Font License). Importing your own .ttf comes in a later update.")));
+                FontRow("Titles", t.font.heading, v => t.font.heading = v, "font_titles"),
+                FontRow("Text", t.font.body, v => t.font.body = v, "font_text"),
+                Fields.Hint("Built-in fonts are free (SIL Open Font License). Your own .ttf / .otf: check that its license allows embedding it in a game (OFL fonts do).")));
 
             // ---- interface
             var u = t.uiStyle;
@@ -168,8 +176,39 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.Enum("Buttons", u.buttonShape, v => { u.buttonShape = v; Changed(); }),
                 Fields.Enum("Panels", u.panelStyle, v => { u.panelStyle = v; Changed(); }),
                 Fields.FloatSlider("Panel corners", 0, 32, u.cornerRadius, v => { u.cornerRadius = v; Changed(); }),
-                Fields.FloatSlider("Animation speed", 0.5f, 2f, u.animationSpeed, v => { u.animationSpeed = v; Changed(); }),
-                Fields.Hint("Custom fonts, logo and music arrive in a next update.")));
+                Fields.FloatSlider("Animation speed", 0.5f, 2f, u.animationSpeed, v => { u.animationSpeed = v; Changed(); })));
+        }
+
+        /// <summary>Built-in font families, or the user's own font file.</summary>
+        VisualElement FontRow(string label, string current, Action<string> set, string baseName)
+        {
+            var ids = new List<string>(FontIds);
+            var names = new List<string>(FontNames);
+            if (!FontIds.Contains(current) && !string.IsNullOrEmpty(current))
+            {
+                ids.Add(current);
+                names.Add("My font: " + System.IO.Path.GetFileName(current));
+            }
+            var dropdown = Fields.Dropdown(label, names, Math.Max(0, ids.IndexOf(current)), i =>
+            {
+                if (i >= 0) { set(ids[i]); Changed(rebuildInspector: true); }
+            });
+            var import = Fields.Button("Import…", () =>
+            {
+                string file = FileDialogs.OpenFile($"Choose the font for the {label.ToLowerInvariant()} (.ttf or .otf)", FileDialogs.FontFilter);
+                if (string.IsNullOrEmpty(file)) return;
+                string relative = PuzzleStudio.Studio.App.ProjectFiles.ImportThemeFile(Pack, file, baseName);
+                if (PuzzleStudio.Game.UI.FontLibrary.LoadFile(Pack.Resolve(relative)) == null)
+                {
+                    App.Modal.Message("Font not usable", "This file could not be read as a font with Latin letters. Try another .ttf or .otf file.");
+                    return;
+                }
+                set(relative);
+                Changed(rebuildInspector: true);
+            }, "studio-btn--small");
+            var row = Fields.Row(dropdown, import);
+            row.AddToClassList("studio-audio-row");
+            return row;
         }
 
         VisualElement ImageRow(string label, string current, string baseName, Action<string> set)

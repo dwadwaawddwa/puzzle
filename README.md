@@ -46,15 +46,16 @@ Pour recompiler après une modification : `build.bat` (voir plus bas).
 1. Double-clique **`Lancer PuzzleStudio.bat`** (ou `Build\PuzzleStudio\PuzzleStudio.exe`).
 2. **New project** (ou « Start from a sample »). Les projets vont dans `Documents\PuzzleStudio Projects\`.
 3. Onglet **Levels** : *+ Add images…* / *+ Add folder…*, ou **glisse-dépose** des images ou un dossier depuis l'Explorateur.
-4. Onglets **Project** (titre…), **Gameplay** (difficulté…), **Theme** (presets, couleurs — fixes ou selon chaque image —, fond, décorations, polices, pièces), **Layout** (déplacer/redimensionner les éléments à la souris),
-   **Steam** (App ID, succès, images de la boutique, captures d'écran) :
+4. Onglets **Project** (titre…), **Levels** (ordre par glisser, recadrage), **Gameplay** (difficulté…), **Theme** (presets, couleurs — fixes ou selon chaque image —, fond, décorations, logos, polices dont les tiennes, pièces), **Layout** (déplacer/redimensionner les éléments à la souris),
+   **Audio** (musiques et sons, écoute, import), **Texts** (crédits, tous les textes, traductions), **Steam** (App ID, succès, images de la boutique, captures d'écran) :
    l'aperçu au centre est le vrai jeu, jouable, mis à jour en direct.
 5. **Play Test** (F5) : lance le jeu dans sa propre fenêtre.
 6. **Export Game** : crée `Documents\PuzzleStudio Exports\<NomDuJeu>\<NomDuJeu>.exe` + `<NomDuJeu>_Data`
    (icône incluse), plus un `.ico`, un `.zip` optionnel et le dossier `<NomDuJeu>_Steamworks` (tout pour Steamworks).
    C'est ce dossier qu'on envoie sur Steam : voir [HOW_TO_CUSTOMIZE.md](HOW_TO_CUSTOMIZE.md#publier-sur-steam).
 
-Raccourcis : Ctrl+S enregistrer, Ctrl+N nouveau, Ctrl+O ouvrir, F5 Play Test.
+Raccourcis : Ctrl+S enregistrer, Ctrl+Z annuler, Ctrl+Y rétablir, Ctrl+N nouveau, Ctrl+O ouvrir, F5 Play Test.
+Sauvegarde automatique toutes les minutes dans `.autosave\` du projet (proposée à la réouverture après un plantage).
 
 ### Jouer à un pack d'exemple (sans Unity)
 ```
@@ -103,7 +104,8 @@ build.bat all        → samples + test + template + studio
 Équivalents dans l'éditeur : menu **Build > Player Template**, **Build > Studio**, **Build > All**, **Build > Generate Sample Packs**, **Build > Setup > Regenerate Project Assets**.
 
 Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzleproj>" -capture a.png;b.png -captureSteps levels;theme -captureQuit`
-(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `storeart`, `screenshots`, `scroll:800`, `pad`, `exportrun`).
+(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `storeart`, `screenshots`, `scroll:800`, `pad`, `crop`, `close`,
+`cropset:x,y,w,h`, `move:1:3`, `undo`, `redo`, `settext:fr:menu.play:Jouer`, `importfont:<chemin>`, `exportrun`).
 
 ### Arguments du jeu
 | Argument | Effet |
@@ -130,12 +132,13 @@ Assets/_Project/Studio   outil de création — PuzzleStudio.asmdef : StudioApp 
 Assets/_Project/Shaders  Piece.shader (coins arrondis SDF, bordure, surbrillance)
 Assets/_Project/Resources  polices OFL, en.json, USS, PanelSettings, matériau
 Assets/Editor/BuildTools   setup du projet, génération des SamplePacks, builds
-Assets/Tests             EditMode (154 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
+Assets/Tests             EditMode (167 tests) + PlayMode (4 tests : parcours complet + niveaux joués à la manette virtuelle)
 SamplePacks/             CozyPastel, DarkNeon, MinimalWhite
 _Legacy/                 ancien générateur (non compilé, conservé pour référence)
 ```
 
-Un projet Studio = un dossier `<Nom>.puzzleproj\` : `project.json` (réglages d'export) + `pack\` (le Game Pack : `game.json` + `levels\`).
+Un projet Studio = un dossier `<Nom>.puzzleproj\` : `project.json` (réglages d'export) + `pack\` (le Game Pack : `game.json` + `levels\`,
+`theme\`, `audio\`) + `steam\` (images boutique, captures) + `.autosave\` / `.trash\` (gérés par le Studio).
 Réglages du Studio (projets récents) : `%USERPROFILE%\AppData\LocalLow\PuzzleStudio\PuzzleStudio\studio.json`.
 
 Sauvegardes du joueur : `%USERPROFILE%\AppData\LocalLow\PuzzleStudio\PuzzleGame\<Titre du jeu>\`

@@ -44,6 +44,9 @@ namespace PuzzleStudio.Studio.App
         public const string Extension = ".puzzleproj";
         public const string ProjectFileName = "project.json";
         public const string PackFolder = "pack";
+        public const string AutosaveFolder = ".autosave";
+        public const string TrashFolder = ".trash";
+        const string SnapshotSeparator = "\n\u001e\n";
 
         public string Root { get; private set; }
         public StudioProjectFile File { get; private set; }
@@ -130,6 +133,90 @@ namespace PuzzleStudio.Studio.App
             string dst = Path.Combine(Root, ProjectFileName);
             if (System.IO.File.Exists(dst)) System.IO.File.Delete(dst);
             System.IO.File.Move(tmp, dst);
+            DeleteAutosave();
+        }
+
+        // ------------------------------------------------------------------ undo snapshots
+
+        /// <summary>The whole editable state as text (for undo / redo and autosave).</summary>
+        public string Snapshot() => GamePackWriter.ToJson(Pack) + SnapshotSeparator + PackJson.Serialize(File);
+
+        /// <summary>Replaces the pack and the project settings by a snapshot (files on disk are not touched).</summary>
+        public void Restore(string snapshot)
+        {
+            int cut = snapshot.IndexOf(SnapshotSeparator, StringComparison.Ordinal);
+            if (cut < 0) throw new ArgumentException("Not a project snapshot.");
+            var pack = GamePackLoader.Parse(snapshot.Substring(0, cut));
+            pack.RootPath = PackDir;
+            var file = PackJson.Deserialize<StudioProjectFile>(snapshot.Substring(cut + SnapshotSeparator.Length)) ?? new StudioProjectFile();
+            file.export ??= new ExportSettings();
+            Pack = pack;
+            File = file;
+        }
+
+        // ------------------------------------------------------------------ autosave
+
+        string AutosaveDir => Path.Combine(Root, AutosaveFolder);
+        string AutosaveFile => Path.Combine(AutosaveDir, "snapshot.json");
+
+        /// <summary>Unsaved changes written aside (never over the project files), recovered after a crash.</summary>
+        public void WriteAutosave()
+        {
+            Directory.CreateDirectory(AutosaveDir);
+            string tmp = AutosaveFile + ".tmp";
+            System.IO.File.WriteAllText(tmp, Snapshot());
+            if (System.IO.File.Exists(AutosaveFile)) System.IO.File.Delete(AutosaveFile);
+            System.IO.File.Move(tmp, AutosaveFile);
+        }
+
+        /// <summary>Time of an autosave newer than the saved project, or null.</summary>
+        public DateTime? PendingAutosave()
+        {
+            if (!System.IO.File.Exists(AutosaveFile)) return null;
+            var auto = System.IO.File.GetLastWriteTimeUtc(AutosaveFile);
+            string game = Path.Combine(PackDir, PackPaths.GameJson);
+            if (System.IO.File.Exists(game) && System.IO.File.GetLastWriteTimeUtc(game) >= auto) return null;
+            return auto.ToLocalTime();
+        }
+
+        public void RecoverAutosave() => Restore(System.IO.File.ReadAllText(AutosaveFile));
+
+        public void DeleteAutosave()
+        {
+            try { if (Directory.Exists(AutosaveDir)) Directory.Delete(AutosaveDir, true); }
+            catch (IOException) { }
+        }
+
+        // ------------------------------------------------------------------ unused files
+
+        /// <summary>
+        /// Moves pictures, sounds and fonts that the game no longer uses to ".trash" (kept until the next cleanup).
+        /// Removing a level or replacing a picture never deletes files during a session, so undo always works.
+        /// </summary>
+        /// <returns>Number of files moved.</returns>
+        public int MoveUnusedFilesToTrash()
+        {
+            string trash = Path.Combine(Root, TrashFolder);
+            try { if (Directory.Exists(trash)) Directory.Delete(trash, true); }
+            catch (IOException) { }
+
+            string json = GamePackWriter.ToJson(Pack).Replace("\\", "/");
+            int moved = 0;
+            foreach (var folder in new[] { PackPaths.LevelsDir, PackPaths.ThemeDir, PackPaths.AudioDir })
+            {
+                string dir = Path.Combine(PackDir, folder);
+                if (!Directory.Exists(dir)) continue;
+                foreach (var file in Directory.GetFiles(dir))
+                {
+                    string relative = $"{folder}/{Path.GetFileName(file)}";
+                    if (json.IndexOf("\"" + relative + "\"", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    string dst = Path.Combine(trash, folder, Path.GetFileName(file));
+                    Directory.CreateDirectory(Path.GetDirectoryName(dst));
+                    try { System.IO.File.Move(file, dst); moved++; }
+                    catch (IOException) { }
+                }
+            }
+            return moved;
         }
 
         /// <summary>Absolute path of a project-relative file (export icon...).</summary>

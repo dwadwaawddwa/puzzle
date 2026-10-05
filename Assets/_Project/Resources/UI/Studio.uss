@@ -439,3 +439,57 @@
 }
 .studio .studio-art-thumb--empty { border-color: rgb(60, 60, 70); }
 .studio .studio-art-caption { font-size: 10px; margin: 3px 0 0 0; white-space: normal; }
+
+/* ---- Levels: drag to reorder */
+.studio .studio-grip { width: 14px; height: 40px; margin-right: 2px; flex-shrink: 0; }
+.studio .studio-level--dragging { opacity: 0.55; }
+.studio .studio-level--drop-above { border-top-width: 3px; border-top-color: rgb(91, 124, 250); }
+.studio .studio-level--drop-below { border-bottom-width: 3px; border-bottom-color: rgb(91, 124, 250); }
+
+/* ---- Crop tool */
+.studio .studio-crop-row { margin: 4px 0 6px 0; align-items: center; }
+.studio .studio-crop-holder { align-items: center; margin-bottom: 10px; }
+.studio .studio-crop-picture {
+    background-color: rgb(14, 15, 18);
+    -unity-background-scale-mode: stretch-to-fill;
+    overflow: hidden;
+}
+.studio .studio-crop-mask { position: absolute; background-color: rgba(0, 0, 0, 0.62); }
+.studio .studio-crop-frame {
+    position: absolute;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+   
+}
+.studio .studio-crop-handle {
+    position: absolute;
+    width: 14px; height: 14px;
+    background-color: rgb(255, 255, 255);
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgb(30, 32, 40);
+}
+.studio .studio-crop-handle--0 { left: -8px; top: -8px; }
+.studio .studio-crop-handle--1 { right: -8px; top: -8px; }
+.studio .studio-crop-handle--2 { right: -8px; bottom: -8px; }
+.studio .studio-crop-handle--3 { left: -8px; bottom: -8px; }
+.studio .studio-crop-aspects { margin-bottom: 4px; flex-wrap: wrap; }
+
+/* ---- Audio */
+.studio .studio-audio-row { flex-wrap: nowrap; align-items: center; }
+.studio .studio-audio-row > .studio-field { flex-grow: 1; flex-shrink: 1; min-width: 0; }
+.studio .studio-sound-row { flex-wrap: nowrap; align-items: center; margin: 2px 0; }
+.studio .studio-sound-name { width: 110px; color: rgb(220, 224, 232); font-size: 12px; }
+.studio .studio-sound-file { flex-shrink: 1; overflow: hidden; margin: 0 4px; }
+
+/* ---- Texts */
+.studio .studio-text-row { margin: 4px 0 6px 0; }
+.studio .studio-text-key { font-size: 10px; color: rgb(139, 147, 163); margin: 0 2px 2px 2px; }
+.studio .studio-text-field { margin: 0; }
+
+/* Empty fields show the default text in gray italics (placeholder). */
+.studio .unity-base-text-field__input--placeholder,
+.studio .unity-base-text-field__input--placeholder > .unity-text-element {
+    color: rgb(112, 119, 135);
+    -unity-font-style: italic;
+}

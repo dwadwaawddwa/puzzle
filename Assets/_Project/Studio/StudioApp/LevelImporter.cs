@@ -66,14 +66,20 @@ namespace PuzzleStudio.Studio.App
             return result;
         }
 
-        /// <summary>Deletes a level and its image file if no other level uses it.</summary>
-        public static void Remove(GamePackData pack, LevelConfig level)
+        /// <summary>Removes a level. Its picture stays on disk until the project is reopened (undo needs it).</summary>
+        public static void Remove(GamePackData pack, LevelConfig level) => pack.levels.Remove(level);
+
+        /// <summary>Moves the level at <paramref name="from"/> so it ends up at index <paramref name="to"/>.</summary>
+        public static bool Move(GamePackData pack, int from, int to)
         {
-            pack.levels.Remove(level);
-            if (pack.levels.Exists(l => l.image == level.image)) return;
-            string path = pack.Resolve(level.image);
-            try { if (path != null && File.Exists(path)) File.Delete(path); }
-            catch (IOException) { }
+            var levels = pack.levels;
+            if (from < 0 || from >= levels.Count) return false;
+            to = Math.Max(0, Math.Min(levels.Count - 1, to));
+            if (from == to) return false;
+            var level = levels[from];
+            levels.RemoveAt(from);
+            levels.Insert(to, level);
+            return true;
         }
 
         public static LevelConfig Duplicate(GamePackData pack, LevelConfig level)

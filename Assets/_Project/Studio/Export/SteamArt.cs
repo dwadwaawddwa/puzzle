@@ -51,7 +51,7 @@ namespace PuzzleStudio.Studio.Export
         sealed class Context
         {
             public ThemePalette Palette;
-            public Font Heading, Body;
+            public FontDefinition Heading, Body;
             public string Title, Subtitle;
             public Texture2D Cover;
         }
@@ -211,7 +211,7 @@ namespace PuzzleStudio.Studio.Export
             var title = new Label(c.Title);
             title.AddToClassList("art-fit");
             title.userData = maxWidth;
-            if (c.Heading != null) title.style.unityFontDefinition = new StyleFontDefinition(FontDefinition.FromFont(c.Heading));
+            if (FontLibrary.IsSet(c.Heading)) title.style.unityFontDefinition = new StyleFontDefinition(c.Heading);
             title.style.fontSize = fontSize;
             title.style.color = color;
             title.style.whiteSpace = WhiteSpace.NoWrap;
@@ -227,7 +227,7 @@ namespace PuzzleStudio.Studio.Export
                 var sub = new Label(c.Subtitle);
                 sub.AddToClassList("art-fit");
                 sub.userData = maxWidth;
-                if (c.Body != null) sub.style.unityFontDefinition = new StyleFontDefinition(FontDefinition.FromFont(c.Body));
+                if (FontLibrary.IsSet(c.Body)) sub.style.unityFontDefinition = new StyleFontDefinition(c.Body);
                 sub.style.fontSize = fontSize * 0.32f;
                 sub.style.color = color;
                 sub.style.opacity = 0.85f;

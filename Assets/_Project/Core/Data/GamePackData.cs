@@ -18,6 +18,9 @@ namespace PuzzleStudio.Core.Data
         public SteamConfig steam = new SteamConfig();
         public LayoutConfig layout = new LayoutConfig();
         public List<LevelConfig> levels = new List<LevelConfig>();
+        /// <summary>Text overrides per language ("fr" → { "menu.play": "Jouer" }), edited in the Studio's Texts tab.
+        /// A language that is only here (e.g. "de") becomes selectable in the game.</summary>
+        public Dictionary<string, Dictionary<string, string>> texts = new Dictionary<string, Dictionary<string, string>>();
 
         /// <summary>Absolute folder the pack was loaded from (not serialized).</summary>
         [JsonIgnore] public string RootPath;

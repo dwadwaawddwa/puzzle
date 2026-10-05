@@ -1,5 +1,31 @@
 # Changelog
 
+## [Jalon 7] Studio v2 — 2026-10-05
+
+### Ajouté
+- **Annuler / Rétablir** (Ctrl+Z, Ctrl+Y ou Ctrl+Maj+Z, boutons Undo / Redo) sur tout le projet ; une frappe ou un
+  curseur glissé compte pour une seule étape.
+- **Sauvegarde automatique** toutes les 60 s dans `.autosave\` (jamais par-dessus le projet) ; après un plantage, le
+  Studio propose de récupérer les changements (et on peut encore annuler la récupération).
+- **Niveaux** : réordonner en glissant les points à gauche de chaque niveau ; **outil de recadrage** (déplacer le cadre,
+  tirer un coin, ratios Libre / Original / 1:1 / 4:3 / 16:9 / 3:4, Reset), visible tout de suite dans l'aperçu.
+- **Onglet Audio** : musique des menus et des niveaux (3 intégrées, aucune, ou ton fichier OGG/WAV/MP3), écoute dans le
+  Studio, volumes, fondu enchaîné, variation de hauteur, et chacun des 10 sons (écouter, remplacer, revenir à l'intégré).
+- **Onglet Texts** : crédits (ajouter, ordonner, supprimer) ; **tous les textes du jeu** modifiables dans chaque langue
+  avec recherche ; **ajout de langues** (allemand, espagnol, italien… 13 au choix) avec compteur de traduction. Stocké dans
+  `game.json` (`texts`) ; une langue ajoutée apparaît dans les réglages du jeu.
+- **Theme** : **logo du jeu** (remplace le titre) et **logo du studio** (splash) ; **polices perso** `.ttf` / `.otf`
+  pour les titres et le texte, chargées par le jeu depuis le pack (police intégrée si le fichier est illisible).
+- Fichiers importés nommés selon leur contenu (`background_3fa2c1d0.png`) : jamais écrasés, donc toujours annulables ;
+  les fichiers devenus inutiles partent dans `.trash\` à l'ouverture suivante.
+- Tests : +13 EditMode (historique, instantanés, sauvegarde auto, fichiers, ordre des niveaux, recadrage, textes et
+  langues, polices depuis un fichier).
+
+### Modifié
+- Textes : un changement en anglais ne remplace plus un texte français intégré (ordre des couches corrigé).
+- Supprimer un niveau ne supprime plus son image tout de suite (elle part dans `.trash\` à la réouverture).
+- La barre « Coming next » du Studio a disparu : tout ce qui était prévu est là.
+
 ## [Jalon 9] Manette, Steam Deck et accessibilité — 2026-10-04
 
 ### Ajouté

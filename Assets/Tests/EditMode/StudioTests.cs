@@ -125,7 +125,7 @@ namespace PuzzleStudio.Tests
         }
 
         [Test]
-        public void Remove_DeletesImageOnlyWhenUnused()
+        public void Remove_KeepsTheImageUntilTheUnusedFilesAreTidied()
         {
             var p = StudioProject.Create(_dir, "Game");
             LevelImporter.Import(p.Pack, new[] { WriteImage(Path.Combine(_dir, "src"), "x.png") });
@@ -134,9 +134,13 @@ namespace PuzzleStudio.Tests
             string file = p.Pack.Resolve(original.image);
 
             LevelImporter.Remove(p.Pack, original);
-            Assert.IsTrue(File.Exists(file), "still used by the duplicate");
+            Assert.AreEqual(0, p.MoveUnusedFilesToTrash(), "still used by the duplicate");
+            Assert.IsTrue(File.Exists(file));
             LevelImporter.Remove(p.Pack, copy);
+            Assert.IsTrue(File.Exists(file), "kept during the session: undo can bring the level back");
+            Assert.AreEqual(1, p.MoveUnusedFilesToTrash());
             Assert.IsFalse(File.Exists(file));
+            Assert.IsTrue(File.Exists(Path.Combine(p.Root, StudioProject.TrashFolder, "levels", Path.GetFileName(file))), "moved to .trash, not deleted");
             Assert.AreEqual(0, p.Pack.levels.Count);
         }
 

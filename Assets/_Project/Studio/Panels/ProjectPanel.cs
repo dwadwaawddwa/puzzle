@@ -33,7 +33,7 @@ namespace PuzzleStudio.Studio.Panels
                 {
                     if (i >= 0) { g.defaultLanguage = Languages[i]; Changed(); }
                 }),
-                Fields.Hint("Built-in game texts are in English. Translations will be editable in the Texts tab (coming soon).")));
+                Fields.Hint("Language of a new player when Steam does not give one. Translations and all game texts: Texts tab.")));
 
             content.Add(Fields.Section("Project folder",
                 Fields.PathRow("", App.Project.Root, "Open", () => FileDialogs.Reveal(App.Project.Root)),

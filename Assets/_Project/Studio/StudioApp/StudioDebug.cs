@@ -25,6 +25,8 @@ namespace PuzzleStudio.Studio.App
 
         public static bool HasFlag(string name) => Array.IndexOf(Environment.GetCommandLineArgs(), name) >= 0;
 
+        static float Fl(string s) => float.Parse(s, CultureInfo.InvariantCulture);
+
         IEnumerator Start()
         {
             var app = GetComponent<StudioApp>();
@@ -63,6 +65,54 @@ namespace PuzzleStudio.Studio.App
                 else if (step.StartsWith("scroll:") && float.TryParse(step.Substring(7), NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
                     app.DebugScrollInspector(y);
                 else if (step == "pad") app.DebugGamepadView(true);
+                else if (step == "close") app.Modal.Close();
+                else if (step.StartsWith("settext:"))
+                {
+                    // settext:fr:menu.play:Allons-y — what typing in the Texts tab does.
+                    var v = step.Split(new[] { ':' }, 4);
+                    var pack = app.Project.Pack;
+                    if (!pack.texts.TryGetValue(v[1], out var t)) pack.texts[v[1]] = t = new System.Collections.Generic.Dictionary<string, string>();
+                    t[v[2]] = v[3];
+                    app.ShowPanel("texts");
+                    app.MarkDirty(rebuildInspector: true);
+                }
+                else if (step.StartsWith("importfont:"))
+                {
+                    var pack = app.Project.Pack;
+                    pack.theme.font.heading = ProjectFiles.ImportThemeFile(pack, step.Substring(11), "font_titles");
+                    app.ShowPanel("theme");
+                    app.MarkDirty(rebuildInspector: true);
+                }
+                else if (step == "undo") app.Undo();
+                else if (step == "redo") app.Redo();
+                else if (step == "crop")
+                {
+                    app.ShowPanel("levels");
+                    var level = app.Project.Pack.levels[app.SelectedLevel];
+                    Core.Util.ImageHeaderReader.TryReadSize(app.Project.Pack.Resolve(level.image), out int w, out int h);
+                    app.Panel<PuzzleStudio.Studio.Panels.LevelsPanel>().OpenCrop(level, w, h);
+                }
+                else if (step.StartsWith("cropset:"))
+                {
+                    // cropset:x,y,w,h — what Apply in the crop dialog does.
+                    var v = step.Substring(8).Split(',');
+                    var level = app.Project.Pack.levels[app.SelectedLevel];
+                    level.crop = new Core.Data.CropRect(Fl(v[0]), Fl(v[1]), Fl(v[2]), Fl(v[3]));
+                    app.ShowPanel("levels");
+                    app.MarkDirty(rebuildInspector: true);
+                }
+                else if (step.StartsWith("move:"))
+                {
+                    var v = step.Substring(5).Split(':');
+                    app.ShowPanel("levels");
+                    app.Panel<PuzzleStudio.Studio.Panels.LevelsPanel>().DebugMove(int.Parse(v[0]) - 1, int.Parse(v[1]) - 1);
+                }
+                else if (step.StartsWith("rename:"))
+                {
+                    app.Project.Pack.levels[app.SelectedLevel].name = step.Substring(7);
+                    app.MarkDirty(rebuildInspector: true);
+                    yield return new WaitForSecondsRealtime(1f);   // past the undo pause: one step
+                }
                 else if (step == "exportrun")
                 {
                     app.StartExport();

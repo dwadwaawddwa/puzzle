@@ -63,6 +63,7 @@ namespace PuzzleStudio.Core.Pack
             pack.layout.gameplay ??= new System.Collections.Generic.Dictionary<string, LayoutItem>();
             pack.layout.menu ??= new System.Collections.Generic.Dictionary<string, LayoutItem>();
             pack.levels ??= new System.Collections.Generic.List<LevelConfig>();
+            pack.texts ??= new System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>();
             pack.gameplay.starRules ??= new StarRules();
             pack.gameplay.stripsCount ??= new IntRange { min = 4, max = 12 };
 

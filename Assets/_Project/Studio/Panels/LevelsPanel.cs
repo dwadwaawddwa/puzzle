@@ -18,6 +18,9 @@ namespace PuzzleStudio.Studio.Panels
         public override string Id => "levels";
         public override string Title => "Levels";
 
+        readonly List<VisualElement> _rows = new List<VisualElement>();
+        int _dragFrom = -1, _dropAt = -1;
+
         public override void Build(VisualElement content)
         {
             var levels = Pack.levels;
@@ -35,11 +38,78 @@ namespace PuzzleStudio.Studio.Panels
             header.AddToClassList("studio-section-title");
             content.Add(header);
 
+            _rows.Clear();
             for (int i = 0; i < levels.Count; i++)
             {
-                content.Add(BuildRow(levels[i], i, report));
+                var row = BuildRow(levels[i], i, report);
+                _rows.Add(row);
+                content.Add(row);
                 if (i == App.SelectedLevel) content.Add(BuildDetails(levels[i], i, report));
             }
+            if (levels.Count > 1) content.Add(Fields.Hint("Drag a level by its dots to change the order."));
+        }
+
+        // ------------------------------------------------------------------ drag to reorder
+
+        VisualElement BuildGrip(int index)
+        {
+            var grip = new GripElement { tooltip = "Drag to reorder" };
+            grip.RegisterCallback<PointerDownEvent>(e =>
+            {
+                _dragFrom = index;
+                _dropAt = index;
+                grip.CapturePointer(e.pointerId);
+                _rows[index].AddToClassList("studio-level--dragging");
+                e.StopPropagation();
+            });
+            grip.RegisterCallback<PointerMoveEvent>(e =>
+            {
+                if (_dragFrom < 0 || !grip.HasPointerCapture(e.pointerId)) return;
+                int target = DropIndex(e.position.y);
+                if (target == _dropAt) return;
+                _dropAt = target;
+                for (int i = 0; i < _rows.Count; i++)
+                {
+                    _rows[i].EnableInClassList("studio-level--drop-above", i == target && target < _dragFrom);
+                    _rows[i].EnableInClassList("studio-level--drop-below", i == target && target > _dragFrom);
+                }
+            });
+            grip.RegisterCallback<PointerUpEvent>(e =>
+            {
+                if (!grip.HasPointerCapture(e.pointerId)) return;
+                grip.ReleasePointer(e.pointerId);
+                FinishDrag();
+            });
+            return grip;
+        }
+
+        /// <summary>Index of the row under a panel-space y (clamped to the list).</summary>
+        int DropIndex(float y)
+        {
+            for (int i = 0; i < _rows.Count; i++)
+                if (y < _rows[i].worldBound.center.y + (i < _dragFrom ? 0f : _rows[i].worldBound.height * 0.5f))
+                    return i;
+            return _rows.Count - 1;
+        }
+
+        void FinishDrag()
+        {
+            int from = _dragFrom, to = _dropAt;
+            _dragFrom = _dropAt = -1;
+            if (from >= 0 && to >= 0 && LevelImporter.Move(Pack, from, to))
+            {
+                App.SelectLevel(to, rebuild: false);
+                Changed(rebuildInspector: true);
+            }
+            else App.RebuildInspector();
+        }
+
+        /// <summary>Same reordering without a mouse (debug captures, tests).</summary>
+        public void DebugMove(int from, int to)
+        {
+            _dragFrom = from;
+            _dropAt = to;
+            FinishDrag();
         }
 
         VisualElement BuildRow(LevelConfig level, int index, ValidationReport report)
@@ -51,10 +121,11 @@ namespace PuzzleStudio.Studio.Panels
             row.RegisterCallback<ClickEvent>(e =>
             {
                 // Ignore clicks on buttons and inside the name field.
-                if (e.target is Button || (e.target is VisualElement ve && (ve is TextField || ve.GetFirstAncestorOfType<TextField>() != null))) return;
+                if (e.target is Button || e.target is GripElement || (e.target is VisualElement ve && (ve is TextField || ve.GetFirstAncestorOfType<TextField>() != null))) return;
                 if (App.SelectedLevel != index) App.SelectLevel(index);
             });
 
+            row.Add(BuildGrip(index));
             var idx = new Label((index + 1).ToString());
             idx.AddToClassList("studio-level-index");
             row.Add(idx);
@@ -113,6 +184,16 @@ namespace PuzzleStudio.Studio.Panels
             string size = ImageHeaderReader.TryReadSize(path, out int w, out int h) ? $"{w} × {h}" : "unreadable";
             box.Add(Fields.Hint($"{level.image}  ·  {size} px"));
 
+            // Crop
+            bool cropped = !CropMath.IsFull(level.crop);
+            var cropRow = Fields.Row(
+                Fields.Hint(cropped ? $"Cropped: keeps {Mathf.RoundToInt(level.crop.w * 100)} % × {Mathf.RoundToInt(level.crop.h * 100)} %" : "Whole picture"),
+                Fields.Spacer(),
+                Fields.Button("Crop…", () => OpenCrop(level, w, h), "studio-btn--small"),
+                cropped ? Fields.Button("Reset", () => { level.crop = CropMath.Full; Changed(rebuildInspector: true); }, "studio-btn--small") : null);
+            cropRow.AddToClassList("studio-crop-row");
+            box.Add(cropRow);
+
             // Mode override
             var modes = PuzzleModeRegistry.Ids.OrderBy(m => m).ToList();
             var choices = new List<string> { $"Default ({Fields.Nicify(Pack.gameplay.defaultMode)})" };
@@ -150,6 +231,20 @@ namespace PuzzleStudio.Studio.Panels
                 box.Add(l);
             }
             return box;
+        }
+
+        /// <summary>Crop dialog for one level (the preview shows the result right away).</summary>
+        public void OpenCrop(LevelConfig level, int width, int height)
+        {
+            var picture = ThumbnailCache.Get(Pack.Resolve(level.image), 960);
+            var editor = new CropEditor(picture, width, height, level.crop);
+            App.Modal.Show("Crop picture", editor,
+                new Modal.ButtonSpec("Cancel", null),
+                new Modal.ButtonSpec("Apply", () =>
+                {
+                    level.crop = editor.Value;
+                    Changed(rebuildInspector: true);
+                }, "studio-btn--primary"));
         }
 
         string ModeLabel(LevelConfig level)

@@ -113,21 +113,40 @@ namespace PuzzleStudio.Game.Bootstrap
                 progress.Submit(pack.levels[i].id, i % 3 == 1 ? 2 : 3, 48f + 23f * i, 18 + 4 * i, false, i % 2 == 0);
         }
 
-        /// <summary>English, a built-in translation, or a locale file of the pack.</summary>
+        /// <summary>English, a built-in translation, a locale file of the pack or texts typed in the Studio.</summary>
         public static bool HasLanguage(GamePackData pack, string code)
         {
             if (string.IsNullOrEmpty(code)) return false;
             if (code == "en" || Resources.Load<TextAsset>($"Localization/{code}") != null) return true;
+            if (pack.texts != null && pack.texts.TryGetValue(code, out var t) && t != null && t.Count > 0) return true;
             return !string.IsNullOrEmpty(pack.RootPath) && File.Exists(Path.Combine(pack.RootPath, PackPaths.LocaleDir, code + ".json"));
         }
 
+        /// <summary>
+        /// Texts of a language, later layers winning: built-in English, the pack's English changes, then (other languages)
+        /// the built-in translation and the pack's changes for that language. An English change therefore never
+        /// replaces a French built-in text; a language without a built-in translation starts from English.
+        /// </summary>
         public static LocalizationService LoadLocalization(GamePackData pack, string lang)
         {
             var loc = new LocalizationService();
-            string builtinEn = Resources.Load<TextAsset>("Localization/en")?.text;
-            string builtinLang = lang != "en" ? Resources.Load<TextAsset>($"Localization/{lang}")?.text : null;
-            loc.Load(lang, builtinEn, builtinLang, ReadPackLocale(pack, "en"), lang != "en" ? ReadPackLocale(pack, lang) : null);
+            lang = string.IsNullOrEmpty(lang) ? "en" : lang;
+            loc.Load(lang, Resources.Load<TextAsset>("Localization/en")?.text, ReadPackLocale(pack, "en"));
+            MergeTexts(loc, pack, "en");
+            if (lang != "en")
+            {
+                loc.Merge(Resources.Load<TextAsset>($"Localization/{lang}")?.text);
+                loc.Merge(ReadPackLocale(pack, lang));
+                MergeTexts(loc, pack, lang);
+            }
             return loc;
+        }
+
+        static void MergeTexts(LocalizationService loc, GamePackData pack, string lang)
+        {
+            if (pack.texts == null || !pack.texts.TryGetValue(lang, out var texts) || texts == null) return;
+            foreach (var kv in texts)
+                if (!string.IsNullOrEmpty(kv.Value)) loc.Set(kv.Key, kv.Value);
         }
 
         static string ReadPackLocale(GamePackData pack, string lang)
