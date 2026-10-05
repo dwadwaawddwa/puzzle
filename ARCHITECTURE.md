@@ -34,7 +34,7 @@ On repart d'un `Assets/` propre. Les seules choses réutilisées sont les idées
 | Sons/musiques par défaut | **Générés par code** (synthèse → WAV/OGG dans `Assets/_Project/Audio/`) : SFX clic/snap/victoire, 2-3 nappes d'ambiance douces | 100 % libres de droits sans téléchargement. Qualité correcte mais simple — tu pourras importer tes musiques dans le Studio. |
 | Polices | Polices **OFL** (Nunito, Inter, Fredoka, Playfair…) depuis Google Fonts | Nécessite un téléchargement → **je te demanderai l'accord** au jalon 3. |
 | Tests | `com.unity.test-framework`, EditMode + PlayMode, lancés en batchmode (`-runTests`) | Chaque jalon : compile + tests verts. |
-| Steam | Steamworks.NET (git package) derrière `STEAM_ENABLED` | Jalon 8. Sans Steam → `NullSteamService`. |
+| Steam | Steamworks.NET 2025.164.1 (git package) ; code compilé seulement si le paquet est là (`PUZZLE_STEAMWORKS`, versionDefines de PuzzleGame.asmdef) | Jalon 8 ✔. Sans App ID / sans Steam → `NullSteamService`. |
 
 ### Ce qui est impossible / déconseillé (franchement)
 - **Compiler un jeu sans Unity** : impossible → d'où le Player Template (comme tu l'as prévu). ✔

@@ -15,6 +15,8 @@ namespace PuzzleStudio.Studio.App
         public ExportSettings export = new ExportSettings();
         public int previewLevel = 0;
         public string previewResolution = "1920x1080";
+        /// <summary>Level whose picture is used for the generated Steam store images.</summary>
+        public int steamCoverLevel = 0;
     }
 
     [Serializable]
@@ -28,6 +30,10 @@ namespace PuzzleStudio.Studio.App
         public string outputDir = null;
         public bool zip = false;
         public bool openFolder = true;
+        /// <summary>"&lt;Name&gt;_Steamworks" folder: achievement icons, store images, SteamPipe script, README.</summary>
+        public bool steamFiles = true;
+        /// <summary>steam_appid.txt in the game folder: lets the exe use Steam when started outside the Steam client (tests only).</summary>
+        public bool steamAppIdTxt = false;
     }
 
     /// <summary>

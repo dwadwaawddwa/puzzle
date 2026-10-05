@@ -416,3 +416,26 @@
 .studio .studio-modal-text { font-size: 13px; color: rgb(210, 214, 222); }
 .studio .studio-modal-buttons { flex-direction: row; justify-content: flex-end; }
 #lbl { width: 128px; color: rgb(170, 176, 190); font-size: 12px; }
+
+/* ---- Steam tab */
+.studio .studio-ach {
+    padding: 8px 10px;
+    margin: 4px 0 8px 0;
+    background-color: rgb(27, 30, 37);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(46, 51, 64);
+}
+.studio .studio-ach-name { -unity-font-style: bold; margin: 0 2px 2px 2px; color: rgb(230, 233, 240); }
+.studio .studio-art-grid { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
+.studio .studio-art-item { width: 112px; margin: 0 8px 10px 0; }
+.studio .studio-art-thumb {
+    height: 64px;
+    border-radius: 6px;
+    background-color: rgb(14, 15, 18);
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 1px;
+    border-color: rgb(46, 51, 64);
+}
+.studio .studio-art-thumb--empty { border-color: rgb(60, 60, 70); }
+.studio .studio-art-caption { font-size: 10px; margin: 3px 0 0 0; white-space: normal; }

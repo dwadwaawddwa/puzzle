@@ -46,11 +46,13 @@ Pour recompiler après une modification : `build.bat` (voir plus bas).
 1. Double-clique **`Lancer PuzzleStudio.bat`** (ou `Build\PuzzleStudio\PuzzleStudio.exe`).
 2. **New project** (ou « Start from a sample »). Les projets vont dans `Documents\PuzzleStudio Projects\`.
 3. Onglet **Levels** : *+ Add images…* / *+ Add folder…*, ou **glisse-dépose** des images ou un dossier depuis l'Explorateur.
-4. Onglets **Project** (titre…), **Gameplay** (difficulté…), **Theme** (presets, couleurs — fixes ou selon chaque image —, fond, décorations, polices, pièces), **Layout** (déplacer/redimensionner les éléments à la souris) :
+4. Onglets **Project** (titre…), **Gameplay** (difficulté…), **Theme** (presets, couleurs — fixes ou selon chaque image —, fond, décorations, polices, pièces), **Layout** (déplacer/redimensionner les éléments à la souris),
+   **Steam** (App ID, succès, images de la boutique, captures d'écran) :
    l'aperçu au centre est le vrai jeu, jouable, mis à jour en direct.
 5. **Play Test** (F5) : lance le jeu dans sa propre fenêtre.
 6. **Export Game** : crée `Documents\PuzzleStudio Exports\<NomDuJeu>\<NomDuJeu>.exe` + `<NomDuJeu>_Data`
-   (icône incluse), plus un `.ico` et un `.zip` optionnel. C'est ce dossier qu'on envoie sur Steam.
+   (icône incluse), plus un `.ico`, un `.zip` optionnel et le dossier `<NomDuJeu>_Steamworks` (tout pour Steamworks).
+   C'est ce dossier qu'on envoie sur Steam : voir [HOW_TO_CUSTOMIZE.md](HOW_TO_CUSTOMIZE.md#publier-sur-steam).
 
 Raccourcis : Ctrl+S enregistrer, Ctrl+N nouveau, Ctrl+O ouvrir, F5 Play Test.
 
@@ -97,7 +99,7 @@ build.bat all        → samples + test + template + studio
 Équivalents dans l'éditeur : menu **Build > Player Template**, **Build > Studio**, **Build > All**, **Build > Generate Sample Packs**, **Build > Setup > Regenerate Project Assets**.
 
 Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzleproj>" -capture a.png;b.png -captureSteps levels;theme -captureQuit`
-(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `exportrun`).
+(étapes : un onglet, `picker`, `victory`, `selectN`, `preset:DarkNeon`, `storeart`, `screenshots`, `scroll:800`, `exportrun`).
 
 ### Arguments du jeu
 | Argument | Effet |
@@ -105,7 +107,9 @@ Arguments de dev du Studio : `PuzzleStudio.exe -openProject "<dossier .puzzlepro
 | `-pack "C:\chemin\GamePack"` | charge un Game Pack depuis le disque (sans export) |
 | `-level 3` | démarre directement au niveau 3 |
 | `-screen menu` | démarre sur un écran (`splash`, `menu`, `levels`, `settings`, `credits`, `end`) |
-| `-capture a.png;b.png -debugAction none;solve -captureQuit` | outil de dev : captures d'écran automatiques (actions : `none`, `select`, `hint`, `partial`, `solve`, `menu`, `levels`, `settings`, `credits`, `end`, `pause`, `pausesettings`, `play2`…) |
+| `-capture a.png;b.png -debugAction none;solve -captureQuit` | outil de dev : captures d'écran automatiques (actions : `none`, `select`, `hint`, `partial`, `solve`, `menu`, `levels`, `settings`, `credits`, `end`, `pause`, `pausesettings`, `achievements`, `play2`…, combinables : `play2+partial`) |
+| `-tempSave` / `-demoProgress` | sauvegarde jetable (et remplie à ~40 %) : utilisé pour les captures de la boutique |
+| `-mute` / `-noSteam` | sans son / sans initialiser Steam |
 
 Ordre de recherche du pack : `-pack`, puis `<Jeu>_Data/StreamingAssets/GamePack/`, puis (éditeur seulement) `SamplePacks/CozyPastel`.
 
@@ -114,14 +118,14 @@ Ordre de recherche du pack : `-pack`, puis `<Jeu>_Data/StreamingAssets/GamePack/
 ## Arborescence
 
 ```
-Assets/_Project/Core     logique pure (données, pack, modes, sauvegarde, localisation) — PuzzleCore.asmdef
-Assets/_Project/Game     runtime du jeu (plateau, entrées, écrans UI Toolkit)      — PuzzleGame.asmdef
+Assets/_Project/Core     logique pure (données, pack, modes, sauvegarde, localisation, succès, fichiers Steamworks) — PuzzleCore.asmdef
+Assets/_Project/Game     runtime du jeu (plateau, entrées, écrans UI Toolkit, Steam via Steamworks.NET) — PuzzleGame.asmdef
 Assets/_Project/Studio   outil de création — PuzzleStudio.asmdef : StudioApp (fenêtre, projets), Panels (onglets),
-                         Preview (aperçu live), Export (exporteur, icône), Widgets, Themes (8 presets + aléatoire)
+                         Preview (aperçu live), Export (exporteur, icône, images Steam, captures), Widgets, Themes (8 presets + aléatoire)
 Assets/_Project/Shaders  Piece.shader (coins arrondis SDF, bordure, surbrillance)
 Assets/_Project/Resources  polices OFL, en.json, USS, PanelSettings, matériau
 Assets/Editor/BuildTools   setup du projet, génération des SamplePacks, builds
-Assets/Tests             EditMode (126 tests) + PlayMode (2 tests de parcours complet)
+Assets/Tests             EditMode (149 tests) + PlayMode (2 tests de parcours complet)
 SamplePacks/             CozyPastel, DarkNeon, MinimalWhite
 _Legacy/                 ancien générateur (non compilé, conservé pour référence)
 ```
@@ -147,4 +151,6 @@ Sauvegardes du joueur : `%USERPROFILE%\AppData\LocalLow\PuzzleStudio\PuzzleGame\
 
 ## Crédits des ressources
 - Polices : Nunito, Inter, Fredoka, Playfair Display — SIL Open Font License (`Assets/_Project/Fonts/OFL-*.txt`).
+- Steam : [Steamworks.NET](https://github.com/rlabrecque/Steamworks.NET) 2025.164.1 (licence MIT), paquet Git
+  téléchargé par Unity (`Packages/manifest.json`).
 - Images des SamplePacks : générées par code (`SamplePackGenerator.cs`), libres de droits.

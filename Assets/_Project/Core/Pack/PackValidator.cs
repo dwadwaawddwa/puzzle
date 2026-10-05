@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using PuzzleStudio.Core.Data;
 using PuzzleStudio.Core.Puzzle;
+using PuzzleStudio.Core.Steam;
 using PuzzleStudio.Core.Util;
 using UnityEngine;
 
@@ -49,6 +50,7 @@ namespace PuzzleStudio.Core.Pack
             if (pack == null) { r.Add(IssueSeverity.Error, "pack.null", "No game pack loaded."); return r; }
 
             ValidateGame(pack, r);
+            ValidateSteam(pack, r);
             ValidateGameplay(pack, r);
             ValidateTheme(pack, r);
             ValidateLevels(pack, r, checkFiles);
@@ -66,6 +68,46 @@ namespace PuzzleStudio.Core.Pack
                 r.Add(IssueSeverity.Error, "steam.appid.invalid", "Steam App ID must be 0 (no Steam) or a positive number.");
             if (string.IsNullOrWhiteSpace(p.game.developer))
                 r.Add(IssueSeverity.Info, "game.developer.empty", "No developer name set (shown on the splash and credits).");
+        }
+
+        static void ValidateSteam(GamePackData p, ValidationReport r)
+        {
+            var steam = p.steam;
+            long appId = p.game.steamAppId;
+            if (appId > uint.MaxValue)
+                r.Add(IssueSeverity.Error, "steam.appid.range", "Steam App ID is too large.");
+            if (steam.depotId < 0)
+                r.Add(IssueSeverity.Error, "steam.depot.invalid", "Steam depot ID must be 0 (App ID + 1) or a positive number.");
+            else if (steam.depotId > 0 && steam.depotId == appId)
+                r.Add(IssueSeverity.Error, "steam.depot.same", "The depot ID cannot be the App ID (Steamworks usually gives App ID + 1).");
+            if (appId == 0)
+                r.Add(IssueSeverity.Info, "steam.appid.none", "No Steam App ID: Steam features are off (achievements still work in the game menu).");
+
+            if (!steam.achievementsEnabled) return;
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var a in steam.achievements)
+            {
+                if (a == null) continue;
+                string label = string.IsNullOrEmpty(a.name) ? a.id : a.name;
+                if (!AchievementGenerator.IsValidId(a.id))
+                    r.Add(IssueSeverity.Error, "steam.ach.id", $"Achievement \"{label}\": the API name may only use letters, digits and _ (e.g. ACH_FIRST_PUZZLE).");
+                else if (!seen.Add(a.id))
+                    r.Add(IssueSeverity.Error, "steam.ach.duplicate", $"Two achievements use the API name {a.id}.");
+                if (string.IsNullOrWhiteSpace(a.name))
+                    r.Add(IssueSeverity.Warning, "steam.ach.name", $"Achievement {a.id} has no name.");
+                switch (a.rule)
+                {
+                    case AchievementRule.LevelsCompleted when a.value < 1 || a.value > Math.Max(1, p.levels.Count):
+                        r.Add(IssueSeverity.Warning, "steam.ach.value", $"Achievement {a.id}: {a.value} levels can never be reached (the game has {p.levels.Count}).");
+                        break;
+                    case AchievementRule.PercentCompleted when a.value <= 0 || a.value > 100:
+                        r.Add(IssueSeverity.Warning, "steam.ach.value", $"Achievement {a.id}: the percentage must be between 1 and 100.");
+                        break;
+                    case AchievementRule.FastLevel when a.value < 5:
+                        r.Add(IssueSeverity.Warning, "steam.ach.value", $"Achievement {a.id}: {a.value} seconds is almost impossible.");
+                        break;
+                }
+            }
         }
 
         static void ValidateGameplay(GamePackData p, ValidationReport r)

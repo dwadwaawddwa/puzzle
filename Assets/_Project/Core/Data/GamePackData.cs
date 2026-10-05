@@ -70,20 +70,33 @@ namespace PuzzleStudio.Core.Data
     [Serializable]
     public sealed class SteamConfig
     {
+        /// <summary>SteamPipe depot receiving the game files. 0 = App ID + 1 (Steamworks' default first depot).</summary>
+        public long depotId = 0;
+        /// <summary>Started outside Steam (double-click on the exe) → relaunch through Steam, as Valve recommends.</summary>
+        public bool restartThroughSteam = true;
+        /// <summary>Only changes the generated Steamworks guide (Auto-Cloud needs no code).</summary>
         public bool cloudEnabled = false;
         public bool richPresence = true;
+        public bool achievementsEnabled = true;
+        /// <summary>Achievements list in the game's main menu (useful outside Steam too).</summary>
+        public bool showAchievementsInGame = true;
         /// <summary>Empty = generated automatically from the level count.</summary>
         public List<AchievementDef> achievements = new List<AchievementDef>();
+
+        public long EffectiveDepotId(long appId) => depotId > 0 ? depotId : appId > 0 ? appId + 1 : 0;
     }
 
     [Serializable]
     public sealed class AchievementDef
     {
+        /// <summary>Steamworks "API Name": letters, digits and underscores.</summary>
         public string id = "";
         public string name = "";
         public string description = "";
         public AchievementRule rule = AchievementRule.LevelsCompleted;
         public float value = 1;
         public bool hidden = false;
+
+        public AchievementDef Clone() => (AchievementDef)MemberwiseClone();
     }
 }

@@ -10,15 +10,19 @@ namespace PuzzleStudio.Core.Save
         public Dictionary<string, LevelRecord> levels = new Dictionary<string, LevelRecord>();
         public string lastPlayedLevelId = null;
         public long totalPlaySeconds = 0;
+        /// <summary>Unlocked achievement ids (kept locally, also when Steam is not running).</summary>
+        public List<string> achievements = new List<string>();
 
         public LevelRecord Get(string levelId) =>
             levelId != null && levels.TryGetValue(levelId, out var r) ? r : null;
 
         public bool IsCompleted(string levelId) => Get(levelId)?.completed == true;
         public int StarsOf(string levelId) => Get(levelId)?.stars ?? 0;
+        public bool HasAchievement(string id) => achievements != null && achievements.Contains(id);
 
         /// <summary>Merges a finished attempt and returns what improved.</summary>
-        public RecordResult Submit(string levelId, int stars, float seconds, int moves, bool usedPreview, bool usedHint)
+        /// <param name="perfect">Solved in the par number of moves or fewer.</param>
+        public RecordResult Submit(string levelId, int stars, float seconds, int moves, bool usedPreview, bool usedHint, bool perfect = false)
         {
             var result = new RecordResult();
             if (!levels.TryGetValue(levelId, out var r))
@@ -40,6 +44,7 @@ namespace PuzzleStudio.Core.Save
             r.timesCompleted++;
             if (!usedPreview) r.completedWithoutPreview = true;
             if (!usedHint) r.completedWithoutHint = true;
+            if (perfect) r.perfect = true;
             return result;
         }
     }
@@ -54,6 +59,7 @@ namespace PuzzleStudio.Core.Save
         public int timesCompleted;
         public bool completedWithoutPreview;
         public bool completedWithoutHint;
+        public bool perfect;
     }
 
     public struct RecordResult

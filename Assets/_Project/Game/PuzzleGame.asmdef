@@ -3,7 +3,8 @@
     "rootNamespace": "PuzzleStudio.Game",
     "references": [
         "PuzzleCore",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "com.rlabrecque.steamworks.net"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -12,6 +13,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.rlabrecque.steamworks.net",
+            "expression": "1.0.0",
+            "define": "PUZZLE_STEAMWORKS"
+        }
+    ],
     "noEngineReferences": false
 }

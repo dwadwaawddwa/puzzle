@@ -330,8 +330,10 @@ namespace PuzzleStudio.Game.Gameplay
             var level = _pack.levels[_levelIndex];
             int stars = _session.Stars(_pack.gameplay.starRules);
             bool wasAllDone = ProgressRules.AllCompleted(_pack, _save.Progress);
-            var record = _save.Progress.Submit(level.id, stars, _session.Elapsed, _session.Moves, _session.UsedPreview, _session.HintsUsed > 0);
+            bool perfect = _session.Par > 0 && _session.Moves <= _session.Par;
+            var record = _save.Progress.Submit(level.id, stars, _session.Elapsed, _session.Moves, _session.UsedPreview, _session.HintsUsed > 0, perfect);
             _save.SaveProgress();
+            _flow.Achievements.Check();
             Debug.Log($"[Puzzle] Solved {level.id}: {_session.Moves} moves (par {_session.Par}), {_session.Elapsed:0.0}s, {stars} stars");
 
             int next = ProgressRules.NextPlayable(_pack, _save.Progress, _levelIndex);

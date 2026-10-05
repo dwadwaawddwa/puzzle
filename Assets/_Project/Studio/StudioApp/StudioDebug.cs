@@ -10,7 +10,8 @@ namespace PuzzleStudio.Studio.App
     /// Developer tool for automated visual checks of the Studio:
     ///   PuzzleStudio.exe -openProject "C:\...\X.puzzleproj" -capture a.png;b.png -captureSteps levels;theme
     ///                    [-captureDelay 2] [-captureQuit]
-    /// Steps: a panel id (project, levels, gameplay, theme, export), "welcome", "victory", "select2" (level 2)...
+    /// Steps: a panel id (project, levels, gameplay, theme, steam, export), "welcome", "victory", "select2" (level 2),
+    /// "storeart" / "screenshots" (Steam tab generators)...
     /// </summary>
     public sealed class StudioDebug : MonoBehaviour
     {
@@ -52,6 +53,15 @@ namespace PuzzleStudio.Studio.App
                 }
                 else if (step.StartsWith("screen:") && System.Enum.TryParse(step.Substring(7), true, out PuzzleStudio.Game.Screens.StartScreen sc))
                     app.Preview.SetScreen(sc);
+                else if (step == "storeart" || step == "screenshots")
+                {
+                    app.ShowPanel("steam");
+                    var steam = app.Panel<PuzzleStudio.Studio.Panels.SteamPanel>();
+                    yield return step == "storeart" ? steam.GenerateStoreImages() : steam.CaptureScreenshots();
+                    Debug.Log($"[StudioCapture] {step} done");
+                }
+                else if (step.StartsWith("scroll:") && float.TryParse(step.Substring(7), NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
+                    app.DebugScrollInspector(y);
                 else if (step == "exportrun")
                 {
                     app.StartExport();

@@ -29,6 +29,7 @@ namespace PuzzleStudio.Studio.Export
             public string ExePath;
             public string ZipPath;
             public string IcoPath;
+            public string SteamworksDir;
             public ValidationReport Report;
         }
 
@@ -37,8 +38,14 @@ namespace PuzzleStudio.Studio.Export
         public Result Outcome { get; private set; }
 
         readonly StudioProject _project;
+        readonly Transform _host;
 
-        public GameExporter(StudioProject project) { _project = project; }
+        /// <param name="host">Parent of the off-screen renderer used for the Steam images.</param>
+        public GameExporter(StudioProject project, Transform host)
+        {
+            _project = project;
+            _host = host;
+        }
 
         public IEnumerator Run()
         {
@@ -127,7 +134,27 @@ namespace PuzzleStudio.Studio.Export
             GamePackWriter.WriteJson(copy, packDst);
             yield return null;
 
-            // 5. Zip.
+            // 5. Steam.
+            long appId = pack.game.steamAppId;
+            if (export.steamAppIdTxt && appId > 0)
+                File.WriteAllText(Path.Combine(gameDir, "steam_appid.txt"), appId.ToString());
+            if (export.steamFiles)
+            {
+                Step(0.87f, "Creating the Steamworks folder…");
+                var renderer = new UiImageRenderer(_host);
+                try
+                {
+                    var steps = CoroutineUtil.Flatten(SteamworksExporter.Run(_project, outRoot, exeName, renderer, s => Status = s));
+                    while (steps.MoveNext()) yield return steps.Current;
+                }
+                finally
+                {
+                    renderer.Dispose();
+                }
+                Outcome.SteamworksDir = SteamworksExporter.FolderFor(outRoot, exeName);
+            }
+
+            // 6. Zip.
             if (export.zip)
             {
                 Step(0.9f, "Creating the zip…");

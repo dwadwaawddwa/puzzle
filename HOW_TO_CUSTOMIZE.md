@@ -89,18 +89,46 @@ Dans `Assets/_Project/Studio/Themes/ThemePresets.cs` :
 3. lance `build.bat test` : le test `Presets_AreAllReadable` vérifie que le texte reste lisible (contraste WCAG ≥ 4.5),
    puis `build.bat studio`.
 
-## Publier sur Steam (étapes générales)
+## Publier sur Steam
 
-1. Dans le Studio, onglet **Export** → **Export Game**. Le dossier `Documents\PuzzleStudio Exports\<NomDuJeu>\` est le jeu complet.
-2. Sur partner.steamgames.com : crée l'application (frais Steam Direct), note l'**App ID** et le **Depot ID** Windows.
-3. Télécharge le **Steamworks SDK** ; dans `sdk/tools/ContentBuilder/` copie le contenu du dossier exporté dans `content/`
-   et adapte les scripts `app_build_<AppID>.vdf` / `depot_build_<DepotID>.vdf`.
-4. Lance `builder/steamcmd.exe +login <compte> +run_app_build ..\scripts\app_build_<AppID>.vdf +quit`.
-5. Dans Steamworks, *Installation → General* : exécutable = `<NomDuJeu>.exe` ; icône client = le `.ico` exporté à côté du dossier.
-6. Publie la build sur la branche par défaut, puis prépare la page boutique.
+### Ce que le jeu fait tout seul
+- **Succès** : générés depuis les niveaux (premier puzzle, moitié, tous, coups parfaits, sans indice, sans aperçu,
+  moins d'une minute, 3 étoiles partout), ou ta propre liste (Studio → **Steam** → *Achievements : Custom*).
+  Ils sont gardés dans la sauvegarde : sans Steam, le jeu les affiche (menu **Achievements** + bandeau « Achievement unlocked ») ;
+  avec Steam, ils sont envoyés à Steam (et renvoyés au lancement suivant s'ils ont été gagnés hors ligne).
+- **Rich Presence** : tes amis Steam voient « Résout le puzzle 3 sur 12 ».
+- **Overlay** : ouvrir l'overlay Steam (Maj+Tab) met le jeu en pause.
+- **Langue** : un nouveau joueur reçoit la langue choisie dans Steam (si le jeu la possède).
+- **Relancer via Steam** : un double-clic sur l'exe hors Steam fait relancer le jeu par Steam (recommandé par Valve).
+- Sans App ID (0), le jeu fonctionne exactement pareil, sans Steam.
 
-Ne mets **pas** de `steam_appid.txt` dans le dossier exporté (il sert seulement en développement).
-L'intégration Steamworks (succès, Rich Presence, overlay) arrive au jalon 8.
+### Étapes
+1. **Steamworks** (partner.steamgames.com) : paie le Steam Direct, crée l'application, note l'**App ID**.
+2. Studio → onglet **Steam** : mets l'App ID (le Depot ID est par défaut App ID + 1, celui que Steamworks crée).
+   *Store page* : choisis l'image de couverture, **Generate store images**, puis **Capture screenshots**
+   (le jeu s'ouvre ~25 s en 1920 × 1080 et se photographie tout seul). Les fichiers vont dans `<projet>\steam\` :
+   tu peux remplacer n'importe lequel par ton propre visuel, l'export prend ce qu'il y a.
+3. **Export Game** : à côté du jeu, le dossier **`<NomDuJeu>_Steamworks\`** contient tout, avec un `README_STEAMWORKS.txt`
+   qui dit quoi saisir où :
+   - `achievements\` : la liste (API Name, nom, description) + les icônes 256 × 256 (normale et `_locked`) ;
+   - `rich_presence\` : un fichier par langue à envoyer dans *Community → Rich Presence* ;
+   - `store\` et `screenshots\` : les images de la page boutique et de la bibliothèque ;
+   - `steampipe\app_build_<AppID>.vdf` + `upload.bat` : l'envoi du jeu.
+4. Dans Steamworks : crée chaque succès avec **exactement** le même *API Name*, ajoute ses deux icônes, puis **Publish**.
+5. Télécharge le **Steamworks SDK** et lance `steampipe\upload.bat` (il demande le chemin de
+   `sdk\tools\ContentBuilder\builder\steamcmd.exe` et ton compte Steam). Dans *SteamPipe → Builds*, mets la build en ligne.
+6. *Installation → General* : exécutable = `<NomDuJeu>.exe` ; icône client = le `.ico` exporté à côté du dossier.
+7. **Steam Cloud** (optionnel) : coche *Steam Cloud* dans le Studio, puis dans Steamworks *Cloud → Auto-Cloud* :
+   Root `WinAppDataLocalLow`, Subdirectory `PuzzleStudio/PuzzleGame/<Titre du jeu>`, Pattern `*.json` (aussi dans le README).
+
+### Tester Steam avant la sortie
+- Steam doit être lancé et connecté. **Play Test** utilise Steam directement si un App ID est réglé
+  (sans relance). Pour un jeu exporté lancé par double-clic, coche *Add steam_appid.txt* dans l'onglet Export —
+  et décoche-le pour la build que tu envoies (le script d'upload l'exclut de toute façon).
+- Avec l'App ID **480** (Spacewar, le jeu de test de Valve), Steam s'initialise et affiche « En jeu : Spacewar »,
+  mais nos succès n'existent pas dans Spacewar : seul ton propre App ID les débloque vraiment.
+- Le log du jeu (`...\LocalLow\PuzzleStudio\PuzzleGame\Player.log`) affiche `[Steam] Initialized for …` ou la raison
+  pour laquelle Steam n'est pas disponible.
 
 ## Ajouter un écran ou un bouton dans le jeu
 
@@ -127,6 +155,13 @@ L'intégration Steamworks (succès, Rich Presence, overlay) arrive au jalon 8.
   synthèse dans `Assets/Editor/BuildTools/DefaultAudioGenerator.cs` puis menu **Build > Generate Default Audio**
   (les musiques `calm_01..03` sont décrites par une suite d'accords, un tempo et une gamme).
 
+## Ajouter une règle de succès
+
+1. Ajoute la valeur à `AchievementRule` (`Assets/_Project/Core/Data/Enums.cs`).
+2. Gère-la dans `AchievementTracker.IsSatisfied` (`Assets/_Project/Core/Steam/Achievements.cs`) : tout se calcule
+   depuis la sauvegarde (`PlayerProgress`), donc ajoute dans `LevelRecord` ce qu'il faut retenir.
+3. Choisis son icône dans `SteamArt.IconFor` et son libellé dans `SteamPanel.RuleText` / `ValueLabel`.
+4. Ajoute un test dans `Assets/Tests/EditMode/SteamTests.cs`.
+
 ## ⏳ À venir
-- Ajouter un réglage dans le Studio (jalons 6–7)
-- Ajouter un succès Steam, builder et uploader sur Steam (jalon 8)
+- Ajouter un réglage dans le Studio (jalon 7)

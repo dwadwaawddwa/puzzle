@@ -1,5 +1,34 @@
 # Changelog
 
+## [Jalon 8] Steam — 2026-10-04
+
+### Ajouté
+- **Steamworks.NET 2025.164.1** (paquet Git, MIT). Le jeu s'initialise avec Steam quand un App ID est réglé :
+  succès, **Rich Presence** (« Résout le puzzle 3 sur 12 », EN/FR), **pause quand l'overlay s'ouvre**,
+  langue de Steam pour un nouveau joueur, **relance via Steam** si l'exe est lancé hors Steam
+  (jamais pour Play Test). Sans App ID ou sans Steam : tout marche pareil (`NullSteamService`).
+- **Succès** : 10 succès générés selon le nombre de niveaux (premier puzzle, quart, moitié, trois quarts, tous,
+  coups parfaits, sans indice, sans aperçu, moins d'une minute, 3 étoiles partout) ou liste personnalisée.
+  Calculés depuis la sauvegarde (rien n'est perdu hors ligne, renvoyés à Steam au lancement suivant).
+  Sans overlay Steam, un **bandeau « Achievement unlocked »** s'affiche ; nouvel écran **Achievements** dans le menu
+  (progression « 2 / 3 », succès cachés). Noms traduits EN/FR tant qu'ils ne sont pas modifiés.
+- Studio : nouvel onglet **Steam** — App ID, Depot ID, relance via Steam, Rich Presence, Steam Cloud
+  (avec les réglages Auto-Cloud exacts), succès *Automatic / Custom / Off* avec éditeur (API name, nom, description,
+  règle, valeur, caché), **images de la boutique** générées (10 formats Steamworks : capsules, bibliothèque, logo
+  transparent, icône communauté) et **5 captures d'écran 1920 × 1080** prises par le jeu lui-même.
+- Export : dossier **`<Nom>_Steamworks`** avec icônes de succès 256 × 256 (normale + grisée), liste des succès,
+  fichiers Rich Presence par langue, images boutique, captures, script **SteamPipe** (`app_build_<AppID>.vdf` +
+  `upload.bat`) et `README_STEAMWORKS.txt` (quoi saisir où). Option `steam_appid.txt` pour tester hors du client Steam.
+- Jeu : arguments `-tempSave`, `-demoProgress`, `-mute`, `-noSteam`, actions de capture combinées (`play2+partial`).
+- Validateur : App ID / Depot ID, API names des succès (format, doublons), valeurs impossibles.
+- Icônes vectorielles Trophée, Étoile, Horloge.
+- Tests : +23 EditMode (règles des succès, génération, sauvegarde, service + faux Steam, fichiers VDF, guide,
+  validateur, tailles des images boutique).
+
+### Modifié
+- L'App ID se règle maintenant dans l'onglet Steam (l'onglet Project y renvoie).
+- « Best: 1 move » au singulier.
+
 ## [Dépôt] Git + installation — 2026-10-04
 
 ### Ajouté

@@ -25,7 +25,7 @@ namespace PuzzleStudio.Studio.App
     /// </summary>
     public sealed class StudioApp : MonoBehaviour
     {
-        public const string Version = "Studio v1";
+        public const string Version = "Studio v1.1";
 
         public StudioProject Project { get; private set; }
         public StudioSettings Settings { get; private set; }
@@ -75,6 +75,8 @@ namespace PuzzleStudio.Studio.App
 
         public LivePreview Preview => _preview;
 
+        public T Panel<T>() where T : StudioPanel => _panels.OfType<T>().FirstOrDefault();
+
         /// <summary>Opens the same popup menu a DropdownField shows (visual check of the dropdown style).</summary>
         public void DebugOpenFirstDropdown()
         {
@@ -88,6 +90,8 @@ namespace PuzzleStudio.Studio.App
             }
             menu.DropDown(field.worldBound, field, true);
         }
+
+        public void DebugScrollInspector(float y) => _scroll.scrollOffset = new Vector2(0, y);
 
         public void DebugLayout(string screen, string select)
         {
@@ -182,6 +186,7 @@ namespace PuzzleStudio.Studio.App
             _panels.Add(new GameplayPanel(this));
             _panels.Add(new ThemePanel(this));
             _panels.Add(new LayoutPanel(this));
+            _panels.Add(new SteamPanel(this));
             _panels.Add(new ExportPanel(this));
             foreach (var p in _panels)
             {
@@ -192,7 +197,7 @@ namespace PuzzleStudio.Studio.App
                 nav.Add(b);
             }
             nav.Add(Fields.Spacer());
-            var soon = new Label("Coming next:\nAudio · Texts · Steam");
+            var soon = new Label("Coming next:\nAudio · Texts");
             soon.AddToClassList("studio-nav-soon");
             nav.Add(soon);
             _body.Add(nav);
@@ -637,7 +642,7 @@ namespace PuzzleStudio.Studio.App
         IEnumerator RunExport()
         {
             IsExporting = true;
-            Exporter = new GameExporter(Project);
+            Exporter = new GameExporter(Project, transform);
             ShowPanel("export");
             var run = Exporter.Run();
             while (true)

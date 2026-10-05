@@ -1,6 +1,7 @@
 using PuzzleStudio.Core.Data;
 using PuzzleStudio.Core.Localization;
 using PuzzleStudio.Core.Save;
+using PuzzleStudio.Core.Steam;
 using PuzzleStudio.Game.UI;
 
 namespace PuzzleStudio.Game.Bootstrap
@@ -12,6 +13,8 @@ namespace PuzzleStudio.Game.Bootstrap
         public static LocalizationService Loc { get; internal set; }
         public static SaveSystem Save { get; internal set; }
         public static ThemeService Theme { get; internal set; }
+        /// <summary>Never null once initialized (a NullSteamService when Steam is off).</summary>
+        public static ISteamService Steam { get; internal set; }
 
         /// <summary>Set when the pack could not be loaded (the game shows an error screen).</summary>
         public static string LoadError { get; internal set; }
@@ -24,6 +27,7 @@ namespace PuzzleStudio.Game.Bootstrap
             Loc = null;
             Save = null;
             Theme = null;
+            Steam = null;
             LoadError = null;
         }
     }

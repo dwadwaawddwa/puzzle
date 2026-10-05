@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace PuzzleStudio.Game.UI
 {
-    public enum Icon { None, Pause, Play, Back, Restart, Undo, Hint, Eye, Gear, Home, Lock, Close, Grid, Next, Check, Info }
+    public enum Icon { None, Pause, Play, Back, Restart, Undo, Hint, Eye, Gear, Home, Lock, Close, Grid, Next, Check, Info, Trophy, Star, Clock }
 
     /// <summary>Simple vector icons drawn with Painter2D (crisp at any scale, colored by the theme).</summary>
     public sealed class IconElement : VisualElement
@@ -110,6 +110,30 @@ namespace PuzzleStudio.Game.UI
                     p.BeginPath(); p.Arc(P(12, 12), 9 * u, 0f, 360f); p.Stroke();
                     p.BeginPath(); p.MoveTo(P(12, 11)); p.LineTo(P(12, 17)); p.Stroke();
                     p.BeginPath(); p.Arc(P(12, 7.5f), 1.2f * u, 0f, 360f); p.Fill();
+                    break;
+                case Icon.Trophy:
+                    // Cup (filled), two handles, stem and base.
+                    p.BeginPath(); p.MoveTo(P(6.5f, 3.5f)); p.LineTo(P(17.5f, 3.5f)); p.LineTo(P(17.5f, 8.5f));
+                    p.Arc(P(12, 8.5f), 5.5f * u, 0f, 180f); p.ClosePath(); p.Fill();
+                    p.BeginPath(); p.Arc(P(6.5f, 7.5f), 2.6f * u, 90f, 270f); p.Stroke();
+                    p.BeginPath(); p.Arc(P(17.5f, 7.5f), 2.6f * u, 270f, 450f); p.Stroke();
+                    p.BeginPath(); p.MoveTo(P(12, 14)); p.LineTo(P(12, 18)); p.Stroke();
+                    Rect(p, P(7.5f, 17.5f), P(16.5f, 21), 1.2f * u);
+                    break;
+                case Icon.Star:
+                    p.BeginPath();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        float a = -Mathf.PI / 2f + i * Mathf.PI / 5f;
+                        float radius = (i % 2 == 0 ? 9.5f : 4f) * u;
+                        var pt = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius + new Vector2(0, 0.8f * u);
+                        if (i == 0) p.MoveTo(pt); else p.LineTo(pt);
+                    }
+                    p.ClosePath(); p.Fill();
+                    break;
+                case Icon.Clock:
+                    p.BeginPath(); p.Arc(P(12, 12), 8.5f * u, 0f, 360f); p.Stroke();
+                    p.BeginPath(); p.MoveTo(P(12, 7)); p.LineTo(P(12, 12)); p.LineTo(P(15.5f, 14)); p.Stroke();
                     break;
             }
         }

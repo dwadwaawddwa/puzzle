@@ -24,13 +24,9 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.Text("Version", g.version, v => { g.version = v; Changed(); }),
                 Fields.Hint("The title is shown in the window bar, the game screens and used as the default executable name.")));
 
-            var appId = Fields.Text("Steam App ID", g.steamAppId.ToString(), v =>
-            {
-                if (long.TryParse(v, out long id) && id >= 0) { g.steamAppId = id; Changed(); }
-            });
             content.Add(Fields.Section("Steam",
-                appId,
-                Fields.Hint("Leave 0 until Valve gives you an App ID (Steamworks → Create app). Achievements and Steam features are added in a later update.")));
+                Fields.Hint(g.steamAppId > 0 ? $"App ID {g.steamAppId}." : "No Steam App ID yet."),
+                Fields.Row(Fields.Button("Steam settings…", () => App.ShowPanel("steam"), "studio-btn--small"))));
 
             content.Add(Fields.Section("Language",
                 Fields.Dropdown("Default language", Languages, Languages.IndexOf(g.defaultLanguage), i =>

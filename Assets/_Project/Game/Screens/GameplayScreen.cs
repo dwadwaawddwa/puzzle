@@ -195,7 +195,7 @@ namespace PuzzleStudio.Game.Screens
             var loc = Flow.Loc;
             _victoryMoves.text = loc.T(moves == 1 ? "victory.move" : "victory.moves", moves);
             _victoryTime.text = loc.T("victory.time", Gameplay.GameSession.FormatTime(seconds));
-            _victoryBest.text = loc.T("victory.best", bestMoves, Gameplay.GameSession.FormatTime(bestTime));
+            _victoryBest.text = loc.T(bestMoves == 1 ? "victory.bestOne" : "victory.best", bestMoves, Gameplay.GameSession.FormatTime(bestTime));
             Pz.SetVisible(_victoryRecord, newRecord);
             _victoryNextLabel.text = nextKind == 1 ? loc.T("victory.finish") : loc.T("victory.next");
             Pz.SetVisible(_victoryNext, nextKind != 2);

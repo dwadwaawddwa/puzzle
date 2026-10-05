@@ -3,6 +3,7 @@ using System.Linq;
 using PuzzleStudio.Core.Pack;
 using PuzzleStudio.Core.Util.Win32;
 using PuzzleStudio.Studio.App;
+using PuzzleStudio.Studio.Export;
 using PuzzleStudio.Studio.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -58,6 +59,16 @@ namespace PuzzleStudio.Studio.Panels
                 Fields.Toggle("Also create a .zip", export.zip, v => { export.zip = v; App.MarkDirty(false, refreshPreview: false); }),
                 Fields.Toggle("Open the folder when done", export.openFolder, v => { export.openFolder = v; App.MarkDirty(false, refreshPreview: false); })));
 
+            // ---- Steam
+            long appId = Pack.game.steamAppId;
+            content.Add(Fields.Section("Steam",
+                Fields.Toggle("Create the Steamworks folder", export.steamFiles, v => { export.steamFiles = v; App.MarkDirty(false, refreshPreview: false); }),
+                Fields.Hint($"\"{App.Project.ExeName}_Steamworks\" next to the game: achievement icons and list, store images, screenshots, Rich Presence files, SteamPipe upload script and a README of what to enter in Steamworks."),
+                Fields.Toggle("Add steam_appid.txt (test outside Steam)", export.steamAppIdTxt, v => { export.steamAppIdTxt = v; App.MarkDirty(false, refreshPreview: false); }),
+                Fields.Hint(appId > 0
+                    ? "Lets the exported .exe use Steam (achievements, overlay) when started by double-click. Leave it off for the build you upload."
+                    : "Needs a Steam App ID (Steam tab).")));
+
             // ---- validation
             _issues = new VisualElement();
             content.Add(Fields.Section("Check", Fields.Row(Fields.Button("Validate", ShowIssues, "studio-btn--small")), _issues));
@@ -76,7 +87,7 @@ namespace PuzzleStudio.Studio.Panels
             var section = Fields.Section("Export", exportBtn, track, _progressLabel, _resultBox);
             if (!StudioPaths.TemplateAvailable)
                 section.Add(Fields.Hint($"Player Template missing ({StudioPaths.TemplateDir}). Reinstall Puzzle Studio or run Build > Player Template.", "studio-text-error"));
-            section.Add(Fields.Hint("The exported folder is the complete game: upload it to Steam with SteamPipe (see HOW_TO_CUSTOMIZE.md). Steam achievements / overlay features come in a later update."));
+            section.Add(Fields.Hint("The exported folder is the complete game. Upload it with steampipe\\upload.bat from the Steamworks folder (see its README)."));
             content.Add(section);
             UpdateProgress();
         }
@@ -96,7 +107,8 @@ namespace PuzzleStudio.Studio.Panels
                 _resultBox.Add(Fields.Row(
                     Fields.Button("Open folder", () => FileDialogs.Reveal(outcome.ExePath), "studio-btn--small"),
                     Fields.Button("Play exported game", () => { try { System.Diagnostics.Process.Start(outcome.ExePath); } catch { } }, "studio-btn--small"),
-                    outcome.ZipPath != null ? Fields.Button("Show zip", () => FileDialogs.Reveal(outcome.ZipPath), "studio-btn--small") : null));
+                    outcome.ZipPath != null ? Fields.Button("Show zip", () => FileDialogs.Reveal(outcome.ZipPath), "studio-btn--small") : null,
+                    outcome.SteamworksDir != null ? Fields.Button("Steamworks folder", () => FileDialogs.Reveal(Path.Combine(outcome.SteamworksDir, SteamworksExporter.Readme)), "studio-btn--small") : null));
             }
             else if (!App.IsExporting && outcome != null && !outcome.Success && outcome.Error != null)
                 _resultBox.Add(Fields.Hint(outcome.Error, "studio-text-error"));

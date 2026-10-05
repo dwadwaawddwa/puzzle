@@ -5,10 +5,12 @@ using PuzzleStudio.Core.Data;
 using PuzzleStudio.Core.Localization;
 using PuzzleStudio.Core.Pack;
 using PuzzleStudio.Core.Save;
+using PuzzleStudio.Core.Steam;
 using PuzzleStudio.Core.Util;
 using PuzzleStudio.Game.Bootstrap;
 using PuzzleStudio.Game.FX;
 using PuzzleStudio.Game.Gameplay;
+using PuzzleStudio.Game.Steam;
 using PuzzleStudio.Game.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -35,6 +37,8 @@ namespace PuzzleStudio.Game.Screens
         public BackgroundView BackgroundPicture { get; private set; }
         public BackgroundFill BackgroundFill { get; private set; }
         public ParticleFactory Particles { get; private set; }
+        public AchievementService Achievements { get; private set; }
+        public ISteamService Steam { get; private set; }
         public bool IsPreview => Viewport.IsPreview;
         public GameScreen CurrentPage => _router?.Page;
         public GameScreen TopScreen => _router?.Top;
@@ -51,6 +55,8 @@ namespace PuzzleStudio.Game.Screens
         CreditsScreen _credits;
         EndScreen _end;
         ConfirmScreen _confirm;
+        AchievementsScreen _achievements;
+        VisualElement _toasts;
         readonly Dictionary<string, Texture2D> _images = new Dictionary<string, Texture2D>();
 
         /// <summary>Raised when the UI scale changes (GameRoot updates the panel settings).</summary>
@@ -89,6 +95,12 @@ namespace PuzzleStudio.Game.Screens
             Particles.ReduceMotion = s.reduceMotion;
             Gameplay = gameObject.AddComponent<GameplayController>();
             Gameplay.Init(this, _camera, Viewport);
+
+            Steam = ServiceHub.Steam ?? new NullSteamService();
+            Steam.OverlayToggled += OnSteamOverlay;
+            Achievements = new AchievementService(Pack, Save, Steam, persist: !IsPreview);
+            Achievements.Unlocked += OnAchievementUnlocked;
+            Achievements.SyncOnStart();
             BuildScreens();
         }
 
@@ -103,6 +115,7 @@ namespace PuzzleStudio.Game.Screens
             _credits = new CreditsScreen(this);
             _end = new EndScreen(this);
             _confirm = new ConfirmScreen(this);
+            _achievements = new AchievementsScreen(this);
             Gameplay.BindScreen(_gameplayScreen);
         }
 
@@ -131,36 +144,24 @@ namespace PuzzleStudio.Game.Screens
 
         // ------------------------------------------------------------------ navigation
 
-        public void ShowMenu()
-        {
-            LeaveGameplay();
-            RefreshBackground(-1);
-            Audio.PlayMusic(Pack.audio.musicMenu);
-            _router.ShowPage(_menu);
-        }
-
-        public void ShowLevels()
-        {
-            LeaveGameplay();
-            RefreshBackground(-1);
-            Audio.PlayMusic(Pack.audio.musicMenu);
-            _router.ShowPage(_levels);
-        }
-
-        public void ShowCredits()
-        {
-            LeaveGameplay();
-            RefreshBackground(-1);
-            Audio.PlayMusic(Pack.audio.musicMenu);
-            _router.ShowPage(_credits);
-        }
+        public void ShowMenu() => ShowMenuPage(_menu);
+        public void ShowLevels() => ShowMenuPage(_levels);
+        public void ShowCredits() => ShowMenuPage(_credits);
+        public void ShowAchievements() => ShowMenuPage(_achievements);
 
         public void ShowEnd()
         {
+            ShowMenuPage(_end);
+            Presence("#Finished");
+        }
+
+        void ShowMenuPage(GameScreen page)
+        {
             LeaveGameplay();
             RefreshBackground(-1);
             Audio.PlayMusic(Pack.audio.musicMenu);
-            _router.ShowPage(_end);
+            _router.ShowPage(page);
+            Presence("#Menu");
         }
 
         public void ShowSettings(bool asOverlay)
@@ -183,7 +184,60 @@ namespace PuzzleStudio.Game.Screens
             Audio.PlayMusic(Pack.audio.musicGame);
             Gameplay.StartLevel(index);
             Gameplay.SetPaused(false);
+            Presence("#Playing", index + 1);
         }
+
+        // ------------------------------------------------------------------ Steam / achievements
+
+        /// <summary>Rich Presence: what Steam friends see ("Solving puzzle 3 of 12").</summary>
+        void Presence(string token, int level = 0)
+        {
+            if (IsPreview || !Pack.steam.richPresence || !Steam.IsAvailable) return;
+            string status = Loc.T(SteamworksFiles.PresenceKey(token), level, Pack.levels.Count);
+            Steam.SetPresence(token, level, Pack.levels.Count, $"{Pack.game.title} - {status}");
+        }
+
+        void OnSteamOverlay(bool active)
+        {
+            if (active) Pause();
+        }
+
+        void OnAchievementUnlocked(AchievementDef def)
+        {
+            Debug.Log($"[Puzzle] Achievement unlocked: {def.id}");
+            // With Steam the overlay shows its own popup; otherwise the game shows a toast.
+            if (Steam.IsAvailable && Steam.OverlayEnabled) return;
+            ShowToast(Loc.T("achievements.toast"), Achievements.NameOf(def, Loc));
+        }
+
+        /// <summary>Small card at the top of the screen for a few seconds (stacks when several arrive).</summary>
+        public void ShowToast(string title, string text)
+        {
+            if (_toasts == null)
+            {
+                _toasts = Pz.MakeBox("pz-toasts");
+                _toasts.pickingMode = PickingMode.Ignore;
+                _uiRoot.Add(_toasts);
+            }
+            _toasts.BringToFront();
+            var icon = new IconElement(Icon.Trophy) { Color = Theme.Palette.OnPrimary };
+            icon.AddToClassList("pz-toast-icon");
+            var badge = Pz.MakeBox("pz-toast-badge", icon);
+            badge.style.backgroundColor = Theme.Palette.Primary;
+            var toast = Pz.MakeBox($"pz-toast {Pz.Surface}", badge,
+                Pz.MakeBox("pz-toast-texts",
+                    Pz.MakeLabel(title, $"pz-toast-title {Pz.TextMuted}"),
+                    Pz.MakeLabel(text, $"pz-toast-text {Pz.Text} {Pz.Heading}")));
+            toast.pickingMode = PickingMode.Ignore;
+            _toasts.Add(toast);
+            if (!_toasts.styleSheets.Contains(GameSheet)) _toasts.styleSheets.Add(GameSheet);
+            Theme.Apply(toast);
+            UiAnim.FadeIn(toast, 0.35f, -18f);
+            Audio.PlaySfx("star");
+            toast.schedule.Execute(() => UiAnim.FadeOut(toast, 0.5f, () => toast.RemoveFromHierarchy())).ExecuteLater(4800);
+        }
+
+        static StyleSheet GameSheet => Resources.Load<StyleSheet>("UI/Game");
 
         // ------------------------------------------------------------------ looks
 
@@ -424,6 +478,7 @@ namespace PuzzleStudio.Game.Screens
 
         void OnDestroy()
         {
+            if (Steam != null) Steam.OverlayToggled -= OnSteamOverlay;
             Thumbs?.Dispose();
             foreach (var t in _images.Values) if (t != null) Destroy(t);
             _images.Clear();

@@ -120,6 +120,8 @@ namespace PuzzleStudio.Game.Screens
                     () => Flow.PlayLevel(ProgressRules.ContinueIndex(pack, progress))));
             var levels = Add(Pz.MakeIconButton(Icon.Grid, loc.T("menu.levels"), allDone ? Pz.Primary : Pz.Ghost, Flow.ShowLevels));
             if (allDone) _first = levels;
+            if (pack.steam.showAchievementsInGame && Flow.Achievements.All.Count > 0)
+                Add(Pz.MakeIconButton(Icon.Trophy, loc.T("menu.achievements"), Pz.Ghost, Flow.ShowAchievements));
             Add(Pz.MakeIconButton(Icon.Gear, loc.T("menu.settings"), Pz.Ghost, () => Flow.ShowSettings(asOverlay: false)));
             Add(Pz.MakeIconButton(Icon.Info, loc.T("menu.credits"), Pz.Ghost, Flow.ShowCredits));
             if (!Flow.IsPreview) Add(Pz.MakeIconButton(Icon.Close, loc.T("menu.quit"), Pz.Ghost, Flow.Quit));

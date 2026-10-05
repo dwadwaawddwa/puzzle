@@ -77,7 +77,7 @@ namespace PuzzleStudio.Game.Bootstrap
 
             Audio = new GameObject("Audio").AddComponent<AudioService>();
             Audio.transform.SetParent(transform, false);
-            Audio.Muted = _host?.Muted ?? false;
+            Audio.Muted = _host?.Muted ?? DebugCapture.HasFlag("-mute");
 
             Flow = gameObject.AddComponent<GameFlow>();
             Flow.Init(_camera, uiRoot, _viewport, Audio);
@@ -94,6 +94,17 @@ namespace PuzzleStudio.Game.Bootstrap
             if (startLevel >= 0 && startScreen == StartScreen.Auto) startScreen = StartScreen.Gameplay;
             Flow.Begin(startScreen, Mathf.Max(0, startLevel));
             DebugCapture.InstallIfRequested(this);
+        }
+
+        void Update()
+        {
+            // Only the real game drives Steam (the Studio preview and tests never start it).
+            if (_host == null) ServiceHub.Steam?.Tick();
+        }
+
+        void OnApplicationQuit()
+        {
+            if (_host == null) ServiceHub.Steam?.Shutdown();
         }
 
         void OnDestroy()

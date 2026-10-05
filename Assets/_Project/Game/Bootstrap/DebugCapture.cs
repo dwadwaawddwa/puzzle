@@ -12,7 +12,8 @@ namespace PuzzleStudio.Game.Bootstrap
     /// Developer tool for automated visual checks (external screen capture sees the GPU surface as black):
     ///   Game.exe -pack X -capture out.png [-captureDelay 2] [-debugAction select|hint|solve|partial] [-captureQuit]
     /// Several captures: -capture a.png;b.png with -debugAction none;solve.
-    /// Navigation actions: menu, levels, settings, credits, end, pause, play1 (level 1)…
+    /// Navigation actions: menu, levels, settings, credits, end, pause, achievements, play1 (level 1)…, combined with "+".
+    /// "-tempSave" uses a fresh throw-away save, "-demoProgress" fills it, "-mute" silences, "-noSteam" skips Steam.
     /// "-screen menu|levels|settings|credits|end|splash" chooses the first screen.
     /// </summary>
     public sealed class DebugCapture : MonoBehaviour
@@ -21,6 +22,10 @@ namespace PuzzleStudio.Game.Bootstrap
         {
             if (Arg("-capture") != null) root.gameObject.AddComponent<DebugCapture>();
         }
+
+        /// <summary>Command-line switch without value ("-mute", "-tempSave"…).</summary>
+        public static bool HasFlag(string name) =>
+            Array.Exists(Environment.GetCommandLineArgs(), a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>"-level N" (1-based) starts directly on a level; -1 if absent.</summary>
         public static int StartLevelArg() => int.TryParse(Arg("-level"), out int n) ? n - 1 : -1;
@@ -42,8 +47,9 @@ namespace PuzzleStudio.Game.Bootstrap
             {
                 string action = i < actions.Length ? actions[i] : "none";
                 yield return new WaitForSecondsRealtime(delay);
-                Perform(root, action);
-                yield return new WaitForSecondsRealtime(action == "solve" ? 4.2f : 1.0f);
+                // "play2+partial": several actions before one capture.
+                foreach (var part in action.Split('+')) Perform(root, part);
+                yield return new WaitForSecondsRealtime(action.EndsWith("solve") ? 4.2f : 1.0f);
                 string path = Path.GetFullPath(paths[i]);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 ScreenCapture.CaptureScreenshot(path);
@@ -72,6 +78,7 @@ namespace PuzzleStudio.Game.Bootstrap
                 case "end": flow.ShowEnd(); return;
                 case "pause": flow.Pause(); return;
                 case "pausesettings": flow.Pause(); flow.ShowSettings(true); return;
+                case "achievements": flow.ShowAchievements(); return;
             }
             if (action.StartsWith("play") && int.TryParse(action.Substring(4), out int lvl)) { flow.PlayLevel(lvl - 1); return; }
 

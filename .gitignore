@@ -22,6 +22,8 @@ Thumbs.db
 
 # Builds Steam
 /SteamBuild/
+# Écrit par Steamworks.NET dans l'éditeur (App ID de test 480)
+/steam_appid.txt
 
 # Ancien projet (gardé seulement en local)
 /_Legacy/
