@@ -1,0 +1,228 @@
+{
+  "packVersion": 1,
+  "game": {
+    "title": "Cozy Puzzles",
+    "subtitle": "Relaxing picture puzzles",
+    "developer": "Puzzle Studio Samples",
+    "version": "1.0.0",
+    "steamAppId": 0,
+    "defaultLanguage": "en",
+    "logo": null,
+    "devLogo": null,
+    "credits": []
+  },
+  "gameplay": {
+    "defaultMode": "SwapTiles",
+    "difficultyCurve": "Progressive",
+    "minGrid": 3,
+    "maxGrid": 6,
+    "fixedGrid": 4,
+    "stripsCount": {
+      "min": 4,
+      "max": 12
+    },
+    "stripsOrientation": "Vertical",
+    "rotateSteps": [
+      90,
+      180,
+      270
+    ],
+    "lockCorrectPieces": true,
+    "minMisplacedRatio": 0.8,
+    "unlockRule": "Sequential",
+    "starsToUnlockPerLevel": 2,
+    "showTimer": true,
+    "showMoves": true,
+    "allowPreview": true,
+    "allowHints": true,
+    "allowUndo": true,
+    "maxHintsPerLevel": 3,
+    "starRules": {
+      "threeStarsMoveFactor": 1.2,
+      "twoStarsMoveFactor": 2.0,
+      "hintCostsStar": true
+    }
+  },
+  "theme": {
+    "preset": "CozyPastel",
+    "autoColors": "Off",
+    "colors": {
+      "background": "#F6EFE7",
+      "surface": "#FFFFFF",
+      "primary": "#E07A5F",
+      "secondary": "#81B29A",
+      "text": "#3D405B",
+      "textMuted": "#8D8FA6",
+      "accent": "#F2CC8F",
+      "success": "#6BBF59",
+      "highlight": "#FFD166",
+      "highlightColorblind": "#3A86FF"
+    },
+    "background": {
+      "type": "AnimatedGradient",
+      "image": null,
+      "imageOpacity": 1.0,
+      "decorLeft": null,
+      "decorRight": null,
+      "gradient": [
+        "#F6EFE7",
+        "#EADBC8"
+      ],
+      "gradientAngle": 135.0,
+      "animationSpeed": 0.2,
+      "pattern": "Dots",
+      "patternOpacity": 0.06,
+      "patternScale": 1.0,
+      "blurLevelImage": false,
+      "vignette": 0.15
+    },
+    "pieces": {
+      "cornerRadius": 8.0,
+      "gap": 4.0,
+      "borderWidth": 2.0,
+      "borderColor": "#FFFFFF",
+      "shadow": true,
+      "shadowStrength": 0.25,
+      "shadowOffset": 4.0,
+      "correctGlow": true,
+      "glowColor": null,
+      "hoverScale": 1.04,
+      "liftScale": 1.08
+    },
+    "font": {
+      "heading": "Default:Rounded",
+      "body": "Default:Clean"
+    },
+    "uiStyle": {
+      "buttonShape": "Pill",
+      "panelStyle": "Soft",
+      "cornerRadius": 16.0,
+      "animationSpeed": 1.0,
+      "titleAnimation": "Float"
+    },
+    "particles": {
+      "victory": "Confetti",
+      "snap": "Sparkle",
+      "intensity": 1.0
+    }
+  },
+  "audio": {
+    "musicMenu": "default:calm_01",
+    "musicGame": "default:calm_02",
+    "musicVolume": 0.6,
+    "sfxVolume": 0.8,
+    "crossfadeSeconds": 1.5,
+    "sfx": {
+      "click": "default:click",
+      "pick": "default:pick",
+      "drop": "default:drop",
+      "snap": "default:snap",
+      "victory": "default:victory",
+      "star": "default:star",
+      "locked": "default:locked"
+    },
+    "pitchVariation": 0.08
+  },
+  "steam": {
+    "cloudEnabled": false,
+    "richPresence": true,
+    "achievements": []
+  },
+  "layout": {
+    "gameplay": {},
+    "menu": {},
+    "boardArea": null
+  },
+  "levels": [
+    {
+      "id": "lvl_01",
+      "image": "levels/01.png",
+      "name": "Sunset Hills",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_02",
+      "image": "levels/02.png",
+      "name": "Pebble Mosaic",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_03",
+      "image": "levels/03.png",
+      "name": "Ripples",
+      "mode": "Rotate",
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_04",
+      "image": "levels/04.jpg",
+      "name": "Candy Stripes",
+      "mode": "Strips",
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_05",
+      "image": "levels/05.png",
+      "name": "Quiet Forest",
+      "mode": "Sliding",
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_06",
+      "image": "levels/06.png",
+      "name": "Moonlit Peaks",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    }
+  ]
+}

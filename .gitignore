@@ -1,0 +1,44 @@
+# Dossiers générés par Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# Fichiers d'IDE / Rider / VS
+.vs/
+.idea/
+*.csproj
+*.sln
+*.user
+*.suo
+
+# Divers OS
+.DS_Store
+Thumbs.db
+
+# Builds Steam
+/SteamBuild/
+
+# Ancien projet (gardé seulement en local)
+/_Legacy/
+
+# Fichiers générés par Unity / VS Code
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+crashlytics-build.properties
+.vscode/
+.consulo/
+*.unityproj
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db

@@ -1,0 +1,20 @@
+{
+    "name": "PuzzleStudio.Editor",
+    "rootNamespace": "PuzzleStudio.EditorTools",
+    "references": [
+        "PuzzleCore",
+        "PuzzleGame",
+        "PuzzleStudio"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

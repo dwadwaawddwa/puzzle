@@ -1,0 +1,198 @@
+{
+  "packVersion": 1,
+  "game": {
+    "title": "Neon Nights",
+    "subtitle": "Glowing puzzles after dark",
+    "developer": "Puzzle Studio Samples",
+    "version": "1.0.0",
+    "steamAppId": 0,
+    "defaultLanguage": "en",
+    "logo": null,
+    "devLogo": null,
+    "credits": []
+  },
+  "gameplay": {
+    "defaultMode": "SwapTiles",
+    "difficultyCurve": "Fixed",
+    "minGrid": 3,
+    "maxGrid": 7,
+    "fixedGrid": 4,
+    "stripsCount": {
+      "min": 4,
+      "max": 12
+    },
+    "stripsOrientation": "Vertical",
+    "rotateSteps": [
+      90,
+      180,
+      270
+    ],
+    "lockCorrectPieces": true,
+    "minMisplacedRatio": 0.8,
+    "unlockRule": "Sequential",
+    "starsToUnlockPerLevel": 2,
+    "showTimer": true,
+    "showMoves": true,
+    "allowPreview": true,
+    "allowHints": true,
+    "allowUndo": true,
+    "maxHintsPerLevel": 3,
+    "starRules": {
+      "threeStarsMoveFactor": 1.2,
+      "twoStarsMoveFactor": 2.0,
+      "hintCostsStar": true
+    }
+  },
+  "theme": {
+    "preset": "DarkNeon",
+    "autoColors": "Off",
+    "colors": {
+      "background": "#12101F",
+      "surface": "#1E1B33",
+      "primary": "#FF4FD8",
+      "secondary": "#3DE0FF",
+      "text": "#F2EEFF",
+      "textMuted": "#A39DC4",
+      "accent": "#FFD23F",
+      "success": "#5CFFB0",
+      "highlight": "#3DE0FF",
+      "highlightColorblind": "#FFD23F"
+    },
+    "background": {
+      "type": "AnimatedGradient",
+      "image": null,
+      "imageOpacity": 1.0,
+      "decorLeft": null,
+      "decorRight": null,
+      "gradient": [
+        "#12101F",
+        "#231A3D"
+      ],
+      "gradientAngle": 135.0,
+      "animationSpeed": 0.2,
+      "pattern": "Grid",
+      "patternOpacity": 0.06,
+      "patternScale": 1.0,
+      "blurLevelImage": false,
+      "vignette": 0.15
+    },
+    "pieces": {
+      "cornerRadius": 10.0,
+      "gap": 6.0,
+      "borderWidth": 2.0,
+      "borderColor": "#2A2550",
+      "shadow": true,
+      "shadowStrength": 0.25,
+      "shadowOffset": 4.0,
+      "correctGlow": true,
+      "glowColor": null,
+      "hoverScale": 1.04,
+      "liftScale": 1.08
+    },
+    "font": {
+      "heading": "Default:Playful",
+      "body": "Default:Clean"
+    },
+    "uiStyle": {
+      "buttonShape": "Rounded",
+      "panelStyle": "Glass",
+      "cornerRadius": 16.0,
+      "animationSpeed": 1.0,
+      "titleAnimation": "Float"
+    },
+    "particles": {
+      "victory": "Stars",
+      "snap": "Sparkle",
+      "intensity": 1.0
+    }
+  },
+  "audio": {
+    "musicMenu": "default:calm_01",
+    "musicGame": "default:calm_02",
+    "musicVolume": 0.6,
+    "sfxVolume": 0.8,
+    "crossfadeSeconds": 1.5,
+    "sfx": {
+      "click": "default:click",
+      "pick": "default:pick",
+      "drop": "default:drop",
+      "snap": "default:snap",
+      "victory": "default:victory",
+      "star": "default:star",
+      "locked": "default:locked"
+    },
+    "pitchVariation": 0.08
+  },
+  "steam": {
+    "cloudEnabled": false,
+    "richPresence": true,
+    "achievements": []
+  },
+  "layout": {
+    "gameplay": {},
+    "menu": {},
+    "boardArea": null
+  },
+  "levels": [
+    {
+      "id": "lvl_01",
+      "image": "levels/01.png",
+      "name": "Synth Horizon",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_02",
+      "image": "levels/02.png",
+      "name": "Circuit Glass",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_03",
+      "image": "levels/03.png",
+      "name": "Pulse",
+      "mode": "Rotate",
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_04",
+      "image": "levels/04.png",
+      "name": "City Lights",
+      "mode": "Strips",
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    }
+  ]
+}

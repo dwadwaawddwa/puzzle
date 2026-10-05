@@ -1,0 +1,418 @@
+/* Puzzle Studio — dark editor theme. Everything is scoped under .studio so the hosted game UI is untouched. */
+
+.studio {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(21, 22, 26);
+    color: rgb(230, 232, 238);
+    font-size: 13px;
+}
+
+/* Default text color for Studio areas (not the hosted game preview). Kept first so specific rules win. */
+.studio-topbar .unity-text-element,
+.studio-nav .unity-text-element,
+.studio-preview-toolbar .unity-text-element,
+.studio-inspector .unity-text-element,
+.studio-statusbar .unity-text-element,
+.studio-welcome .unity-text-element,
+.studio-modal-layer .unity-text-element,
+.studio-overlay .unity-text-element { color: rgb(230, 232, 238); }
+
+.studio .studio-spacer { flex-grow: 1; }
+.studio .studio-row { flex-direction: row; align-items: center; flex-wrap: wrap; }
+
+/* ---------------- buttons ---------------- */
+.studio .studio-btn {
+    height: 32px;
+    padding: 0 14px;
+    margin: 2px 3px;
+    border-radius: 6px;
+    border-width: 0;
+    background-color: rgb(42, 45, 54);
+    color: rgb(230, 232, 238);
+    -unity-text-align: middle-center;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.studio .studio-btn:hover { background-color: rgb(52, 56, 68); }
+.studio .studio-btn:active { background-color: rgb(35, 38, 46); }
+.studio .studio-btn:disabled { opacity: 0.4; }
+.studio .studio-btn--primary { background-color: rgb(91, 124, 250); color: rgb(255, 255, 255); }
+.studio .studio-btn--primary:hover { background-color: rgb(110, 139, 255); }
+.studio .studio-btn--success { background-color: rgb(47, 158, 106); color: rgb(255, 255, 255); }
+.studio .studio-btn--success:hover { background-color: rgb(55, 180, 121); }
+.studio .studio-btn--accent { background-color: rgb(120, 82, 220); color: rgb(255, 255, 255); }
+.studio .studio-btn--accent:hover { background-color: rgb(138, 100, 238); }
+.studio .studio-btn--danger { background-color: rgb(64, 36, 40); color: rgb(255, 140, 140); }
+.studio .studio-btn--danger:hover { background-color: rgb(90, 44, 50); }
+.studio .studio-btn--small { height: 26px; padding: 0 9px; font-size: 12px; }
+.studio .studio-btn--icon { width: 26px; padding: 0; font-size: 14px; }
+.studio .studio-btn--big { height: 40px; padding: 0 22px; font-size: 14px; }
+
+/* ---------------- top bar ---------------- */
+.studio-topbar {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    height: 52px;
+    padding: 0 12px;
+    background-color: rgb(29, 31, 37);
+    border-bottom-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio .studio-logo { font-size: 16px; color: rgb(255, 255, 255); margin-right: 16px; }
+.studio .studio-project-name { color: rgb(154, 160, 173); }
+.studio-topbar-sep { width: 1px; height: 26px; margin: 0 8px; background-color: rgb(52, 56, 66); }
+
+/* ---------------- body ---------------- */
+.studio-body { flex-grow: 1; flex-shrink: 1; min-height: 0; overflow: hidden; flex-direction: row; }
+
+.studio-nav {
+    width: 150px;
+    padding: 10px 8px;
+    background-color: rgb(26, 28, 33);
+    border-right-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio .studio-nav-item {
+    height: 38px;
+    padding-left: 14px;
+    margin: 0 0 4px 0;
+    border-radius: 7px;
+    border-width: 0;
+    -unity-text-align: middle-left;
+    background-color: rgba(0, 0, 0, 0);
+    color: rgb(182, 187, 198);
+    font-size: 14px;
+}
+.studio .studio-nav-item:hover { background-color: rgb(37, 40, 48); color: rgb(255, 255, 255); }
+.studio .studio-nav-item--active { background-color: rgb(43, 51, 80); color: rgb(255, 255, 255); }
+.studio .studio-nav-soon { color: rgb(100, 106, 120); font-size: 11px; white-space: normal; padding: 0 8px 6px 8px; }
+
+.studio-center { flex-grow: 1; flex-shrink: 1; min-height: 0; flex-direction: column; }
+.studio-preview-toolbar {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    height: 44px;
+    padding: 0 10px;
+    background-color: rgb(26, 28, 33);
+    border-bottom-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio .studio-preview-title { color: rgb(120, 128, 145); font-size: 11px; margin-right: 10px; letter-spacing: 1px; }
+.studio .studio-toolbar-dropdown { width: 200px; min-width: 110px; flex-shrink: 1; margin-right: 6px; }
+.studio .studio-preview-toolbar .studio-btn { flex-shrink: 0; }
+.studio .studio-preview-title { flex-shrink: 0; }
+.studio .studio-toolbar-dropdown .unity-base-field__label { display: none; }
+.studio .studio-toolbar-dropdown--small { width: 140px; }
+
+.studio-preview-area {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: rgb(14, 15, 18);
+}
+.studio-preview-frame {
+    position: absolute;
+    overflow: hidden;
+    border-width: 1px;
+    border-color: rgb(44, 47, 55);
+    background-color: rgb(30, 30, 36);
+}
+.studio-preview-board { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.studio-preview-ui { position: absolute; left: 0; top: 0; }
+.studio-preview-empty {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    -unity-text-align: middle-center;
+    color: rgb(120, 128, 145);
+    font-size: 15px;
+    white-space: normal;
+}
+
+.studio-inspector {
+    width: 440px;
+    min-height: 0;
+    background-color: rgb(29, 31, 37);
+    border-left-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio .studio-inspector-header {
+    flex-shrink: 0;
+    height: 44px;
+    padding: 0 16px;
+    -unity-text-align: middle-left;
+    font-size: 15px;
+    color: rgb(255, 255, 255);
+    border-bottom-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio-inspector-scroll { flex-grow: 1; flex-shrink: 1; min-height: 0; }
+.studio-inspector-content { padding: 12px 14px 30px 14px; }
+
+.studio-section {
+    margin-bottom: 12px;
+    padding: 10px 12px 8px 12px;
+    background-color: rgb(34, 37, 44);
+    border-radius: 8px;
+}
+.studio .studio-section-title { font-size: 11px; color: rgb(139, 147, 163); margin: 2px 0 8px 2px; letter-spacing: 1px; }
+.studio .studio-hint { color: rgb(139, 147, 163); font-size: 12px; white-space: normal; margin: 4px 2px; }
+.studio .studio-text-error { color: rgb(255, 120, 120); }
+.studio .studio-text-warning { color: rgb(255, 190, 90); }
+.studio .studio-text-success { color: rgb(90, 210, 150); }
+.studio .studio-text-muted { color: rgb(120, 128, 145); }
+
+/* ---------------- status bar ---------------- */
+.studio-statusbar {
+    flex-shrink: 0;
+    height: 26px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px;
+    background-color: rgb(26, 28, 33);
+    border-top-width: 1px;
+    border-color: rgb(44, 47, 55);
+}
+.studio .studio-status { flex-grow: 1; color: rgb(154, 160, 173); font-size: 12px; }
+.studio .studio-version { color: rgb(100, 106, 120); font-size: 11px; }
+
+/* ---------------- form controls ---------------- */
+.studio .unity-base-field { margin: 3px 0; min-height: 26px; }
+.studio .unity-base-field__label { min-width: 128px; width: 128px; color: rgb(170, 176, 190); font-size: 12px; -unity-text-align: middle-left; }
+.studio .unity-base-text-field__input,
+.studio .unity-base-popup-field__input {
+    background-color: rgb(18, 19, 23);
+    border-color: rgb(52, 56, 66);
+    border-width: 1px;
+    border-radius: 5px;
+    color: rgb(230, 232, 238);
+    padding: 2px 6px;
+    min-height: 24px;
+}
+.studio .unity-base-text-field__input:focus { border-color: rgb(91, 124, 250); }
+.studio .unity-base-popup-field__input:hover,
+.studio .unity-base-popup-field__input:focus,
+.studio .unity-base-popup-field__input:active,
+.studio .unity-base-field:focus .unity-base-popup-field__input,
+.studio .unity-base-field:hover .unity-base-popup-field__input {
+    background-color: rgb(28, 30, 37);
+    border-color: rgb(91, 124, 250);
+    color: rgb(236, 238, 243);
+}
+.studio .unity-base-popup-field__input .unity-text-element { color: rgb(236, 238, 243); }
+.studio .unity-base-popup-field__arrow { -unity-background-image-tint-color: rgb(170, 176, 190); }
+
+.studio .unity-base-slider__tracker { background-color: rgb(52, 56, 66); border-width: 0; border-radius: 2px; }
+.studio .studio-field .unity-base-slider__dragger { background-color: rgb(91, 124, 250); border-width: 0; border-radius: 6px; }
+.studio .unity-base-slider__dragger-border { display: none; }
+.studio .unity-base-slider__text-field { width: 54px; margin-left: 6px; }
+
+.studio .unity-toggle__checkmark { background-color: rgb(18, 19, 23); border-color: rgb(70, 75, 88); border-radius: 4px; }
+.studio .unity-toggle__input:checked > .unity-toggle__checkmark { background-color: rgb(91, 124, 250); border-color: rgb(91, 124, 250); }
+
+.studio .unity-scroller--vertical { width: 10px; }
+.studio .unity-scroller--vertical .unity-base-slider__tracker { background-color: rgb(29, 31, 37); }
+.studio .unity-scroller--vertical .unity-base-slider__dragger { background-color: rgb(60, 64, 76); border-width: 0; border-radius: 4px; }
+.studio .unity-scroller__low-button, .studio .unity-scroller__high-button { display: none; }
+
+/* Dropdown menus are created at the panel root (outside .studio): dark background, white text. */
+.unity-base-dropdown .unity-base-dropdown__container-outer {
+    background-color: rgb(38, 41, 49);
+    border-color: rgb(74, 79, 92);
+    border-width: 1px;
+    border-radius: 6px;
+}
+.unity-base-dropdown .unity-base-dropdown__container-inner {
+    background-color: rgb(38, 41, 49);
+    border-width: 0;
+}
+.unity-base-dropdown .unity-scroll-view,
+.unity-base-dropdown .unity-scroll-view__content-viewport,
+.unity-base-dropdown .unity-scroll-view__content-container {
+    background-color: rgb(38, 41, 49);
+}
+.unity-base-dropdown .unity-base-dropdown__item {
+    background-color: rgb(38, 41, 49);
+    color: rgb(236, 238, 243);
+    min-height: 26px;
+}
+.unity-base-dropdown .unity-base-dropdown__item:hover,
+.unity-base-dropdown .unity-base-dropdown__item:hover:enabled,
+.unity-base-dropdown .unity-base-dropdown__item:focus {
+    background-color: rgb(64, 84, 150);
+}
+.unity-base-dropdown .unity-base-dropdown__item:checked {
+    background-color: rgb(46, 54, 84);
+}
+.unity-base-dropdown .unity-base-dropdown__label,
+.unity-base-dropdown .unity-base-dropdown__item .unity-text-element {
+    color: rgb(236, 238, 243);
+}
+.unity-base-dropdown .unity-base-dropdown__checkmark {
+    -unity-background-image-tint-color: rgb(236, 238, 243);
+}
+.unity-base-dropdown .unity-base-dropdown__separator {
+    background-color: rgb(74, 79, 92);
+}
+
+.studio .studio-path-row { margin: 4px 0; flex-wrap: nowrap; }
+.studio .studio-path-label { width: 128px; color: rgb(170, 176, 190); font-size: 12px; }
+.studio .studio-path { flex-grow: 1; flex-shrink: 1; color: rgb(200, 205, 215); font-size: 12px; white-space: normal; margin-right: 6px; overflow: hidden; }
+
+/* ---------------- colors ---------------- */
+.studio .studio-color-field { margin: 3px 0; flex-wrap: nowrap; }
+.studio .studio-color-label { width: 128px; color: rgb(170, 176, 190); font-size: 12px; }
+.studio .studio-swatch { width: 40px; height: 24px; border-radius: 5px; border-width: 1px; border-color: rgb(70, 75, 88); margin-right: 6px; }
+.studio .studio-hex { width: 96px; margin: 0; }
+
+.studio-overlay { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.studio-popup-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.studio .studio-colorpicker {
+    position: absolute;
+    width: 262px;
+    padding: 12px;
+    background-color: rgb(38, 41, 49);
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: rgb(66, 70, 84);
+}
+.studio .studio-sv { width: 202px; height: 160px; border-radius: 4px; overflow: hidden; }
+.studio .studio-hue { width: 22px; height: 160px; margin-left: 12px; }
+.studio .studio-handle {
+    position: absolute;
+    width: 14px; height: 14px;
+    margin-left: -7px; margin-top: -7px;
+    border-radius: 7px;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+}
+.studio .studio-hue-handle {
+    position: absolute;
+    left: -3px; right: -3px;
+    height: 6px;
+    margin-top: -3px;
+    border-width: 2px;
+    border-radius: 3px;
+    border-color: rgb(255, 255, 255);
+}
+.studio .studio-picker-info { margin-top: 10px; flex-wrap: nowrap; }
+.studio .studio-picker-hex { color: rgb(230, 232, 238); font-size: 13px; }
+.studio .studio-palette { flex-direction: row; flex-wrap: wrap; margin-top: 8px; }
+.studio .studio-palette-chip { width: 20px; height: 20px; border-radius: 4px; margin: 2px; border-width: 1px; border-color: rgb(70, 75, 88); }
+
+/* ---------------- levels ---------------- */
+.studio .studio-level {
+    padding: 6px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    background-color: rgb(34, 37, 44);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0);
+    flex-wrap: nowrap;
+}
+.studio .studio-level:hover { background-color: rgb(39, 42, 51); }
+.studio .studio-level--selected { border-color: rgb(91, 124, 250); background-color: rgb(38, 43, 61); }
+.studio .studio-level-index { width: 22px; color: rgb(139, 147, 163); -unity-text-align: middle-center; font-size: 12px; }
+.studio .studio-level-thumb {
+    width: 76px; height: 54px;
+    border-radius: 5px;
+    margin-right: 8px;
+    background-color: rgb(14, 15, 18);
+    -unity-background-scale-mode: scale-and-crop;
+}
+.studio .studio-level-main { flex-grow: 1; flex-shrink: 1; }
+.studio .studio-level-name { margin: 0; }
+.studio .studio-level-sub { color: rgb(139, 147, 163); font-size: 11px; margin: 3px 2px 0 2px; }
+.studio .studio-level-warning { color: rgb(255, 190, 90); font-size: 11px; margin: 3px 2px 0 2px; }
+.studio .studio-level-details {
+    padding: 8px 10px;
+    margin: -2px 0 10px 0;
+    background-color: rgb(27, 30, 37);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(52, 60, 95);
+}
+
+/* ---------------- theme pictures ---------------- */
+.studio .studio-image-row { margin: 4px 0; flex-wrap: nowrap; }
+.studio .studio-image-thumb {
+    width: 56px; height: 40px;
+    margin-right: 8px;
+    border-radius: 5px;
+    border-width: 1px;
+    border-color: rgb(60, 64, 76);
+    background-color: rgb(14, 15, 18);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ---------------- layout tab ---------------- */
+.studio .studio-layout-list { margin-bottom: 4px; }
+.studio .studio-layout-item {
+    height: 30px;
+    margin: 2px 0;
+    -unity-text-align: middle-left;
+    padding-left: 12px;
+}
+.studio .studio-layout-item--selected { background-color: rgb(43, 51, 80); border-width: 1px; border-color: rgb(91, 124, 250); }
+
+/* ---------------- export ---------------- */
+.studio .studio-icon-row { flex-wrap: nowrap; align-items: flex-start; margin: 6px 0; }
+.studio .studio-icon-thumb {
+    width: 64px; height: 64px;
+    border-radius: 14px;
+    margin-right: 10px;
+    background-color: rgb(14, 15, 18);
+    -unity-background-scale-mode: scale-and-crop;
+}
+.studio .studio-progress { height: 10px; margin: 10px 0 4px 0; border-radius: 5px; background-color: rgb(18, 19, 23); overflow: hidden; }
+.studio .studio-progress-fill { height: 100%; width: 0; background-color: rgb(47, 158, 106); }
+
+/* ---------------- welcome ---------------- */
+.studio-welcome { flex-grow: 1; align-items: center; justify-content: center; background-color: rgb(14, 15, 18); }
+.studio-welcome-card { width: 620px; padding: 34px 36px; background-color: rgb(29, 31, 37); border-radius: 14px; border-width: 1px; border-color: rgb(44, 47, 55); }
+.studio .studio-welcome-title { font-size: 30px; color: rgb(255, 255, 255); margin-bottom: 4px; }
+.studio .studio-welcome-sub { font-size: 14px; margin-bottom: 18px; }
+.studio .studio-welcome-section { margin-top: 22px; }
+.studio .studio-recent-item {
+    height: 32px;
+    -unity-text-align: middle-left;
+    padding-left: 12px;
+    margin: 2px 0;
+    background-color: rgb(34, 37, 44);
+    border-width: 0;
+    border-radius: 6px;
+    color: rgb(210, 214, 222);
+    font-size: 12px;
+}
+.studio .studio-recent-item:hover { background-color: rgb(43, 51, 80); }
+
+/* ---------------- modal ---------------- */
+.studio-modal-layer {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+}
+.studio .studio-modal {
+    width: 540px;
+    padding: 22px 24px 18px 24px;
+    background-color: rgb(34, 37, 44);
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: rgb(60, 64, 76);
+}
+.studio .studio-modal-title { font-size: 17px; color: rgb(255, 255, 255); margin-bottom: 12px; }
+.studio .studio-modal-body { margin-bottom: 16px; }
+.studio .studio-modal-text { font-size: 13px; color: rgb(210, 214, 222); }
+.studio .studio-modal-buttons { flex-direction: row; justify-content: flex-end; }
+#lbl { width: 128px; color: rgb(170, 176, 190); font-size: 12px; }

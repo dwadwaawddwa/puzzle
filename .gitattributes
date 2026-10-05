@@ -1,0 +1,32 @@
+# Fins de ligne : normalisées dans le dépôt, CRLF pour les scripts Windows
+* text=auto
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.cs text diff=csharp
+
+# Fichiers Unity en texte (Force Text)
+*.unity text
+*.prefab text
+*.asset text
+*.mat text
+*.meta text
+*.asmdef text
+*.uss text
+*.tss text
+*.shader text
+
+# Binaires
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.ico binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.exe binary
+*.dll binary
+*.zip binary

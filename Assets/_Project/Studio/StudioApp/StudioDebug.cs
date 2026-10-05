@@ -1,0 +1,85 @@
+using System;
+using System.Collections;
+using System.Globalization;
+using System.IO;
+using UnityEngine;
+
+namespace PuzzleStudio.Studio.App
+{
+    /// <summary>
+    /// Developer tool for automated visual checks of the Studio:
+    ///   PuzzleStudio.exe -openProject "C:\...\X.puzzleproj" -capture a.png;b.png -captureSteps levels;theme
+    ///                    [-captureDelay 2] [-captureQuit]
+    /// Steps: a panel id (project, levels, gameplay, theme, export), "welcome", "victory", "select2" (level 2)...
+    /// </summary>
+    public sealed class StudioDebug : MonoBehaviour
+    {
+        public static string Arg(string name)
+        {
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+                if (string.Equals(args[i], name, StringComparison.OrdinalIgnoreCase)) return args[i + 1];
+            return null;
+        }
+
+        public static bool HasFlag(string name) => Array.IndexOf(Environment.GetCommandLineArgs(), name) >= 0;
+
+        IEnumerator Start()
+        {
+            var app = GetComponent<StudioApp>();
+            string[] paths = Arg("-capture").Split(';');
+            string[] steps = (Arg("-captureSteps") ?? "").Split(';');
+            float delay = float.TryParse(Arg("-captureDelay"), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : 2f;
+
+            yield return new WaitForSecondsRealtime(delay);
+            for (int i = 0; i < paths.Length; i++)
+            {
+                string step = i < steps.Length ? steps[i] : "";
+                if (step == "victory") app.Preview.ShowVictory();
+                else if (step.StartsWith("select") && int.TryParse(step.Substring(6), out int lvl)) app.SelectLevel(lvl - 1);
+                else if (step == "picker") app.DebugOpenFirstColorPicker();
+                else if (step.StartsWith("dropdown:"))
+                {
+                    app.ShowPanel(step.Substring(9));
+                    yield return new WaitForSecondsRealtime(0.5f);
+                    app.DebugOpenFirstDropdown();
+                }
+                else if (step.StartsWith("layout:"))
+                {
+                    var parts = step.Substring(7).Split(':');
+                    app.DebugLayout(parts[0], parts.Length > 1 ? parts[1] : null);
+                    yield return new WaitForSecondsRealtime(1.5f);
+                }
+                else if (step.StartsWith("screen:") && System.Enum.TryParse(step.Substring(7), true, out PuzzleStudio.Game.Screens.StartScreen sc))
+                    app.Preview.SetScreen(sc);
+                else if (step == "exportrun")
+                {
+                    app.StartExport();
+                    while (app.IsExporting) yield return null;
+                    Debug.Log($"[StudioCapture] export result: {app.Exporter?.Outcome?.Success} {app.Exporter?.Outcome?.ExePath} {app.Exporter?.Outcome?.Error} | {app.Exporter?.Status}");
+                }
+                else if (step.StartsWith("preset:"))
+                {
+                    PuzzleStudio.Studio.Themes.ThemePresets.Apply(app.Project.Pack, step.Substring(7));
+                    app.ShowPanel("theme");
+                    app.MarkDirty(rebuildInspector: true);
+                    yield return new WaitForSecondsRealtime(1f);
+                }
+                else if (step.Length > 0 && step != "welcome") app.ShowPanel(step);
+                yield return new WaitForSecondsRealtime(step == "victory" ? 2.5f : 1.2f);
+
+                string path = Path.GetFullPath(paths[i]);
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                ScreenCapture.CaptureScreenshot(path);
+                yield return null;
+                yield return null;
+                Debug.Log($"[StudioCapture] {step} → {path}");
+            }
+            if (HasFlag("-captureQuit"))
+            {
+                yield return new WaitForSecondsRealtime(0.5f);
+                app.ForceQuit();
+            }
+        }
+    }
+}

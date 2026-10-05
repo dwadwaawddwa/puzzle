@@ -1,0 +1,338 @@
+/* Layout only. Colors, fonts and corner radii come from the Game Pack theme (ThemeService). */
+
+.pz-root {
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+.pz-hidden { display: none; }
+.pz-spacer { flex-grow: 1; }
+
+/* ======================= buttons ======================= */
+.pz-button {
+    height: 64px;
+    min-width: 64px;
+    padding: 0 30px;
+    margin: 0 8px;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+    border-width: 0;
+    transition-property: scale, opacity;
+    transition-duration: 0.12s, 0.12s;
+    transition-timing-function: ease-out-back, linear;
+}
+.pz-button:hover { scale: 1.05 1.05; }
+.pz-button:focus { scale: 1.07 1.07; }
+.pz-button:active { scale: 0.95 0.95; }
+.pz-button:disabled { opacity: 0.4; scale: 1 1; }
+
+.pz-button--with-icon { flex-direction: row; align-items: center; justify-content: center; }
+.pz-button--with-icon .pz-icon { width: 28px; height: 28px; }
+.pz-button-label { font-size: 24px; margin: 0 2px 0 10px; -unity-text-align: middle-center; }
+.pz-button--icon { padding: 0; width: 64px; }
+.pz-button--small { height: 48px; padding: 0 22px; font-size: 20px; }
+
+.pz-badge-host { flex-direction: row; }
+.pz-badge {
+    position: absolute;
+    top: -10px;
+    right: 0;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    padding: 0 6px;
+}
+
+/* ======================= gameplay HUD ======================= */
+.pz-topbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 140px;
+    padding: 28px 56px 0 56px;
+}
+.pz-title-block { max-width: 900px; }
+.pz-actions { flex-direction: row; align-items: center; }
+.pz-decor { -unity-background-scale-mode: scale-to-fit; }
+.pz-level-label { font-size: 22px; letter-spacing: 1px; margin-bottom: 2px; -unity-text-align: middle-left; }
+.pz-level-name { font-size: 40px; -unity-text-align: middle-left; }
+.pz-tip-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 160px;
+    align-items: center;
+}
+.pz-tip {
+    padding: 12px 26px;
+    border-radius: 26px;
+    max-width: 900px;
+}
+.pz-level-help { font-size: 21px; -unity-text-align: middle-center; white-space: normal; }
+.pz-stats { flex-direction: row; align-items: center; }
+.pz-pill {
+    flex-direction: row;
+    align-items: center;
+    height: 56px;
+    padding: 0 26px;
+    margin-left: 14px;
+}
+.pz-pill-label { font-size: 19px; margin-right: 12px; }
+.pz-pill-value { font-size: 28px; min-width: 54px; -unity-text-align: middle-right; }
+.pz-stats .pz-button { margin-left: 14px; margin-right: 0; }
+.pz-stats .pz-pill:first-child { margin-left: 0; }
+
+.pz-bottombar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 140px;
+    padding-bottom: 32px;
+}
+
+/* ======================= overlays / cards ======================= */
+.pz-overlay {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0);
+    transition-property: background-color;
+    transition-duration: 0.35s;
+}
+.pz-overlay--in { background-color: rgba(0, 0, 0, 0.26); }
+
+.pz-card {
+    align-items: center;
+    min-width: 560px;
+    padding: 48px 72px 44px 72px;
+}
+.pz-card-title { font-size: 56px; margin-bottom: 10px; -unity-text-align: middle-center; }
+.pz-stars { flex-direction: row; margin: 8px 0 24px 0; }
+.pz-star { width: 84px; height: 84px; margin: 0 8px; }
+.pz-card-stats { flex-direction: row; margin-bottom: 4px; }
+.pz-card-stat { font-size: 26px; margin: 0 18px; }
+.pz-card-best { font-size: 20px; margin-bottom: 8px; }
+.pz-card-record { font-size: 24px; margin-bottom: 8px; }
+.pz-card-buttons { flex-direction: row; margin-top: 24px; justify-content: center; }
+
+.pz-menu-card { min-width: 480px; }
+.pz-menu-card .pz-menu-buttons { margin-top: 18px; width: 380px; }
+
+.pz-confirm-text {
+    font-size: 28px;
+    max-width: 640px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+}
+
+/* ======================= shared page header ======================= */
+.pz-screen-header {
+    flex-direction: row;
+    align-items: center;
+    padding: 40px 64px 16px 64px;
+    flex-shrink: 0;
+}
+.pz-screen-title { font-size: 54px; margin-left: 20px; }
+
+/* ======================= splash ======================= */
+.pz-splash { align-items: center; justify-content: center; }
+.pz-splash-block {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+.pz-splash-title { font-size: 110px; -unity-text-align: middle-center; white-space: normal; max-width: 1500px; }
+.pz-splash-dev { font-size: 34px; letter-spacing: 2px; -unity-text-align: middle-center; }
+.pz-splash-devlogo { width: 420px; height: 240px; -unity-background-scale-mode: scale-to-fit; }
+
+/* ======================= main menu ======================= */
+.pz-menu { justify-content: center; }
+.pz-menu-titleblock { max-width: 860px; }
+.pz-menu-title { font-size: 108px; -unity-text-align: middle-left; white-space: normal; }
+.pz-logo-image { -unity-background-scale-mode: scale-to-fit; }
+.pz-menu-subtitle { font-size: 32px; margin-top: 6px; -unity-text-align: middle-left; white-space: normal; }
+.pz-menu-buttons { width: 420px; }
+.pz-menu-button { margin: 7px 0; height: 68px; justify-content: flex-start; padding-left: 28px; }
+.pz-menu-showcase { width: 720px; height: 520px; align-items: center; justify-content: center; }
+.pz-showcase-holder { position: absolute; width: 560px; height: 370px; }
+.pz-showcase-shadow {
+    position: absolute;
+    left: 16px; top: 22px; right: -16px; bottom: -22px;
+    border-radius: 18px;
+    background-color: rgba(0, 0, 0, 0.16);
+}
+.pz-showcase-card { position: absolute; left: 0; top: 0; right: 0; bottom: 0; padding: 14px; }
+.pz-showcase-photo {
+    flex-grow: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.08);
+    -unity-background-scale-mode: scale-and-crop;
+}
+.pz-menu-footer {
+    position: absolute;
+    left: 150px; right: 60px; bottom: 34px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.pz-footer-text { font-size: 18px; }
+
+/* ======================= level select ======================= */
+.pz-levels-progress { margin-left: 0; }
+.pz-levels-counter { font-size: 24px; margin-right: 18px; }
+.pz-levels-stars { font-size: 22px; }
+.pz-levels-progress .pz-star--small { margin: 0 6px 0 0; }
+.pz-levels-scroll { flex-grow: 1; }
+.pz-levels-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 48px 70px 48px;
+}
+.pz-level-card {
+    width: 340px;
+    margin: 14px;
+    padding: 10px;
+    transition-property: scale, translate;
+    transition-duration: 0.15s, 0.15s;
+    transition-timing-function: ease-out-back, ease-out;
+}
+.pz-level-card:hover { scale: 1.04 1.04; }
+.pz-level-card:focus { scale: 1.06 1.06; translate: 0 -4px; }
+.pz-level-thumb {
+    height: 196px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.08);
+    -unity-background-scale-mode: scale-and-crop;
+}
+.pz-level-number {
+    position: absolute;
+    left: 10px; top: 10px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 10px;
+    border-radius: 21px;
+    font-size: 21px;
+    -unity-text-align: middle-center;
+}
+.pz-level-veil { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.pz-lock {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 78px; height: 78px;
+    margin-left: -39px; margin-top: -39px;
+    border-radius: 39px;
+    align-items: center;
+    justify-content: center;
+}
+.pz-lock__icon { width: 40px; height: 40px; }
+.pz-level-need {
+    position: absolute;
+    left: 0; right: 0; bottom: 10px;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+.pz-level-info { padding: 10px 6px 2px 6px; }
+.pz-level-card-name { font-size: 22px; -unity-text-align: middle-left; overflow: hidden; }
+.pz-level-card--locked .pz-level-card-name { opacity: 0.55; }
+.pz-level-meta { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 6px; height: 28px; }
+.pz-level-stars { flex-direction: row; }
+.pz-star--small { width: 26px; height: 26px; margin: 0 2px; }
+.pz-level-time { font-size: 18px; }
+
+/* ======================= settings ======================= */
+.pz-settings--overlay { background-color: rgba(0, 0, 0, 0.45); }
+.pz-settings-scroll { flex-grow: 1; }
+.pz-settings-card {
+    width: 1000px;
+    align-self: center;
+    align-items: stretch;
+    margin: 6px 0 60px 0;
+    padding: 18px 48px 28px 48px;
+}
+.pz-settings-section { font-size: 17px; letter-spacing: 2px; margin: 22px 0 4px 0; }
+.pz-setting-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 66px;
+    border-bottom-width: 1px;
+    border-color: rgba(128, 128, 128, 0.16);
+}
+.pz-setting-label { font-size: 24px; }
+.pz-setting-control { width: 440px; flex-direction: row; justify-content: flex-end; align-items: center; }
+
+.pz-slider-box { flex-direction: row; align-items: center; }
+.pz-slider { flex-grow: 1; margin: 0; }
+.pz-slider .unity-base-field__label { display: none; }
+.pz-slider .unity-base-slider__drag-container { height: 30px; }
+.pz-slider .unity-base-slider__tracker { height: 8px; margin-top: -4px; border-radius: 4px; top: 50%; }
+.pz-slider .unity-base-slider__dragger { width: 28px; height: 28px; border-radius: 14px; margin-top: -14px; top: 50%; }
+.pz-slider .unity-base-slider__dragger-border { display: none; }
+.pz-slider-value { width: 76px; font-size: 20px; -unity-text-align: middle-right; }
+
+.pz-toggle { height: 44px; }
+.pz-toggle__track { width: 76px; height: 42px; border-radius: 21px; padding: 5px; }
+.pz-toggle__knob {
+    width: 32px; height: 32px;
+    border-radius: 16px;
+    transition-property: translate;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+.pz-toggle__knob--on { translate: 34px 0; }
+.pz-toggle:focus .pz-toggle__track { scale: 1.08 1.08; }
+
+.pz-selector { flex-direction: row; align-items: center; height: 52px; }
+.pz-selector__arrow {
+    width: 52px; height: 52px;
+    padding: 0;
+    border-width: 0;
+    font-size: 38px;
+    -unity-text-align: middle-center;
+}
+.pz-selector__value { flex-grow: 1; font-size: 22px; -unity-text-align: middle-center; }
+.pz-selector:focus { scale: 1.03 1.03; }
+
+/* ======================= credits ======================= */
+.pz-credits-scroll { flex-grow: 1; }
+.pz-credits-col { align-items: center; padding: 10px 0 90px 0; }
+.pz-credits-gametitle { font-size: 76px; margin-bottom: 44px; -unity-text-align: middle-center; }
+.pz-credits-role { font-size: 19px; letter-spacing: 2px; margin-top: 6px; -unity-text-align: middle-center; }
+.pz-credits-names { font-size: 32px; margin-bottom: 28px; -unity-text-align: middle-center; }
+.pz-credits-thanks { font-size: 36px; margin-top: 30px; }
+
+/* ======================= end ======================= */
+.pz-end { align-items: center; justify-content: center; }
+.pz-end-star { width: 150px; height: 150px; margin-bottom: 10px; }
+.pz-end-subtitle { font-size: 26px; -unity-text-align: middle-center; }
+.pz-end-stats { font-size: 24px; margin: 18px 0 6px 0; white-space: normal; -unity-text-align: middle-center; }
+
+/* ======================= scroll bars ======================= */
+.pz-root .unity-scroller--vertical { width: 10px; border-width: 0; background-color: rgba(0, 0, 0, 0); }
+.pz-root .unity-scroller--vertical .unity-base-slider__tracker { background-color: rgba(0, 0, 0, 0); border-width: 0; }
+.pz-root .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(128, 128, 128, 0.35);
+    border-width: 0;
+    border-radius: 5px;
+    left: 2px; right: 2px;
+}
+.pz-root .unity-scroller__low-button, .pz-root .unity-scroller__high-button { display: none; }
+
+/* ======================= error screen ======================= */
+.pz-error {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    background-color: rgb(30, 30, 36);
+}
+.pz-error-title { font-size: 44px; color: rgb(255, 120, 110); margin-bottom: 20px; }
+.pz-error-body { font-size: 24px; color: rgb(230, 230, 235); white-space: normal; -unity-text-align: middle-center; }

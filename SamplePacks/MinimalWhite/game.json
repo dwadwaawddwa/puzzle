@@ -1,0 +1,198 @@
+{
+  "packVersion": 1,
+  "game": {
+    "title": "Quiet Shapes",
+    "subtitle": "Minimal puzzles",
+    "developer": "Puzzle Studio Samples",
+    "version": "1.0.0",
+    "steamAppId": 0,
+    "defaultLanguage": "en",
+    "logo": null,
+    "devLogo": null,
+    "credits": []
+  },
+  "gameplay": {
+    "defaultMode": "SwapTiles",
+    "difficultyCurve": "Progressive",
+    "minGrid": 3,
+    "maxGrid": 5,
+    "fixedGrid": 4,
+    "stripsCount": {
+      "min": 4,
+      "max": 12
+    },
+    "stripsOrientation": "Vertical",
+    "rotateSteps": [
+      90,
+      180,
+      270
+    ],
+    "lockCorrectPieces": true,
+    "minMisplacedRatio": 0.8,
+    "unlockRule": "Sequential",
+    "starsToUnlockPerLevel": 2,
+    "showTimer": true,
+    "showMoves": true,
+    "allowPreview": true,
+    "allowHints": true,
+    "allowUndo": true,
+    "maxHintsPerLevel": 3,
+    "starRules": {
+      "threeStarsMoveFactor": 1.2,
+      "twoStarsMoveFactor": 2.0,
+      "hintCostsStar": true
+    }
+  },
+  "theme": {
+    "preset": "MinimalWhite",
+    "autoColors": "Off",
+    "colors": {
+      "background": "#F4F4F2",
+      "surface": "#FFFFFF",
+      "primary": "#1E1E1E",
+      "secondary": "#8C8C8C",
+      "text": "#1E1E1E",
+      "textMuted": "#8C8C8C",
+      "accent": "#FF6B4A",
+      "success": "#3FA36B",
+      "highlight": "#FF6B4A",
+      "highlightColorblind": "#2F6BFF"
+    },
+    "background": {
+      "type": "Solid",
+      "image": null,
+      "imageOpacity": 1.0,
+      "decorLeft": null,
+      "decorRight": null,
+      "gradient": [
+        "#F6EFE7",
+        "#EADBC8"
+      ],
+      "gradientAngle": 135.0,
+      "animationSpeed": 0.2,
+      "pattern": "None",
+      "patternOpacity": 0.06,
+      "patternScale": 1.0,
+      "blurLevelImage": false,
+      "vignette": 0.15
+    },
+    "pieces": {
+      "cornerRadius": 2.0,
+      "gap": 2.0,
+      "borderWidth": 0.0,
+      "borderColor": "#FFFFFF",
+      "shadow": false,
+      "shadowStrength": 0.25,
+      "shadowOffset": 4.0,
+      "correctGlow": true,
+      "glowColor": null,
+      "hoverScale": 1.04,
+      "liftScale": 1.08
+    },
+    "font": {
+      "heading": "Default:Clean",
+      "body": "Default:Clean"
+    },
+    "uiStyle": {
+      "buttonShape": "Square",
+      "panelStyle": "Flat",
+      "cornerRadius": 16.0,
+      "animationSpeed": 1.0,
+      "titleAnimation": "Float"
+    },
+    "particles": {
+      "victory": "Confetti",
+      "snap": "Sparkle",
+      "intensity": 1.0
+    }
+  },
+  "audio": {
+    "musicMenu": "default:calm_01",
+    "musicGame": "default:calm_02",
+    "musicVolume": 0.6,
+    "sfxVolume": 0.8,
+    "crossfadeSeconds": 1.5,
+    "sfx": {
+      "click": "default:click",
+      "pick": "default:pick",
+      "drop": "default:drop",
+      "snap": "default:snap",
+      "victory": "default:victory",
+      "star": "default:star",
+      "locked": "default:locked"
+    },
+    "pitchVariation": 0.08
+  },
+  "steam": {
+    "cloudEnabled": false,
+    "richPresence": true,
+    "achievements": []
+  },
+  "layout": {
+    "gameplay": {},
+    "menu": {},
+    "boardArea": null
+  },
+  "levels": [
+    {
+      "id": "lvl_01",
+      "image": "levels/01.png",
+      "name": "Stones",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_02",
+      "image": "levels/02.png",
+      "name": "Echo",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_03",
+      "image": "levels/03.png",
+      "name": "Lines",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    },
+    {
+      "id": "lvl_04",
+      "image": "levels/04.png",
+      "name": "Ridge",
+      "mode": null,
+      "grid": null,
+      "crop": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0,
+        "IsValid": true
+      },
+      "seed": null
+    }
+  ]
+}
