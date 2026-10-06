@@ -1,5 +1,17 @@
 # Changelog
 
+## [Retouches] Bulle d'aide et option daltonien — 2026-10-06
+
+### Amélioré
+- La **bulle d'aide** du début de niveau disparaît dès le premier coup : elle ne cache plus la rangée du bas du
+  plateau pendant 5 secondes (tous les modes ; les clics passaient déjà à travers).
+- Option **daltonien** changée en pleine partie (menu pause) : les cartes Memory déjà retournées affichent ou
+  retirent leur numéro tout de suite.
+- Vérifié en image : cartes « couleurs » + option daltonien = contour coloré **et** numéro.
+
+### Ajouté
+- Action de capture `colorblind` (active l'option daltonien pour les vérifications visuelles).
+
 ## [Mode Memory] Nouveau mode de jeu : les paires — 2026-10-05
 
 ### Ajouté

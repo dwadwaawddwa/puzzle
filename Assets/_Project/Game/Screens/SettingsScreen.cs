@@ -138,7 +138,7 @@ namespace PuzzleStudio.Game.Screens
                 int si = Array.FindIndex(SettingsApplier.UiScales, x => Mathf.Approximately(x, s.uiScale));
                 AddSelector(loc.T("settings.textSize"), sizes, si < 0 ? 1 : si, i => Flow.SetUiScale(SettingsApplier.UiScales[i]));
             }
-            AddToggle(loc.T("settings.colorblind"), s.colorblindMode, v => { s.colorblindMode = v; Flow.Theme.ColorblindMode = v; });
+            AddToggle(loc.T("settings.colorblind"), s.colorblindMode, v => { s.colorblindMode = v; Flow.Theme.ColorblindMode = v; Flow.Gameplay?.RefreshBoard(); });
             AddToggle(loc.T("settings.reduceMotion"), s.reduceMotion, v => { s.reduceMotion = v; UiAnim.ReduceMotion = v; Flow.ReduceMotionChanged(); });
             AddToggle(loc.T("settings.showTimer"), s.showTimer, Flow.SetShowTimer);
             AddToggle(loc.T("settings.readableFont"), s.readableFont, Flow.SetReadableFont);

@@ -192,6 +192,15 @@ namespace PuzzleStudio.Game.Screens
         }
 
         /// <param name="nextKind">0 = next level, 1 = finish (all done), 2 = none (next level locked).</param>
+        /// <summary>The player has started: the how-to-play bubble fades away (it no longer hides the board).</summary>
+        public void DismissTip()
+        {
+            if (_tipHide == null || _tipRow.ClassListContains(Pz.Hidden)) return;
+            _tipHide?.Pause();
+            _tipHide = null;
+            UiAnim.FadeOut(_tip, 0.25f, () => Pz.SetVisible(_tipRow, false));
+        }
+
         void HideTip()
         {
             _tipHide?.Pause();

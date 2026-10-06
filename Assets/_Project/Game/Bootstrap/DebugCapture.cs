@@ -89,6 +89,7 @@ namespace PuzzleStudio.Game.Bootstrap
                 case "pausesettings": flow.Pause(); flow.ShowSettings(true); return;
                 case "achievements": flow.ShowAchievements(); return;
                 case "controls": flow.ShowControls(); return;
+                case "colorblind": flow.Theme.ColorblindMode = true; flow.Gameplay?.RefreshBoard(); return;
             }
             if (action.StartsWith("play") && int.TryParse(action.Substring(4), out int lvl)) { flow.PlayLevel(lvl - 1); return; }
 

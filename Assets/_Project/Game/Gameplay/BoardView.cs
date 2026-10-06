@@ -226,6 +226,12 @@ namespace PuzzleStudio.Game.Gameplay
             RefreshHighlights();
         }
 
+        /// <summary>Memory: re-applies the symbols (after the colorblind option changed) without animation.</summary>
+        public void RefreshCards()
+        {
+            if (_cards != null) SyncCards(animate: false);
+        }
+
         /// <summary>Memory: turns the cards to match the logic (face down / face up with symbol / found pair).</summary>
         void SyncCards(bool animate)
         {

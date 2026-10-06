@@ -330,6 +330,14 @@ namespace PuzzleStudio.Game.Gameplay
 
         public void RefreshHighlights() => _board.RefreshHighlights();
 
+        /// <summary>Settings changed during a level (colorblind option): redraws the board feedback and Memory symbols.</summary>
+        public void RefreshBoard()
+        {
+            if (_mode == null) return;
+            _board.RefreshCards();
+            _board.RefreshHighlights();
+        }
+
         void SetPreview(bool visible)
         {
             if (!_pack.gameplay.allowPreview || _session == null) return;
@@ -343,6 +351,7 @@ namespace PuzzleStudio.Game.Gameplay
         {
             if (!move.IsUndo)
             {
+                _screen.DismissTip();
                 _session.CountMove(move.Count);
                 if (_cards != null) CardMoved(move);
                 else _flow.Audio.PlaySfx(_mode.DragStyle == DragStyle.None ? "pick" : "drop");
